@@ -3,15 +3,20 @@ module OrbitalDynamics
 use parameters
 use constants
 use metric
+use NumericalMethods
+use IO
 
 implicit none
 
 private calculate_EQL, function_f, function_g, function_h, function_d, &
-        calculate_p, calculate_s
+        calculate_p, calculate_s 
 
 public MPD
 
 contains
+
+
+
 
 
 subroutine MPD()
@@ -19,12 +24,18 @@ subroutine MPD()
 real(kind=dp), dimension(4) :: xi !Initial spatial coordinates t_init, r_init, theta_init, phi_init, t_init
 real(kind=dp), dimension(3) :: ci !Conserved quantities
 real(kind=dp), dimension(4) :: pvector,svector !4-momentum
+
+real(kind=dp), dimension(:,:), allocatable :: MPDData
+
 real(kind=dp) :: E,Q,L
-real(kind=dp), dimension(entries) :: y_init !the array of initial conditions to pass to the rk solver
+real(kind=dp), dimension(entries) :: y !the array of initial conditions to pass to the rk solver
+real(kind=dp), dimension(4) :: consts
+integer(kind=dp) :: i,ierr
+logical :: res
+integer(kind=dp) :: array_rows, stat, stat_io,j
+real(kind=dp) :: x1,x2,x3,x4,p1,p2,p3,p4,s1,s2,s3,s4
 
-
-
-print *, 'MPD subroutine called'
+allocate(MPDData(nrows,entries),stat=ierr)
 
 xi(1) = 0.0_dp !t_init
 xi(2) = semi_major
@@ -52,10 +63,61 @@ m_sq = -m_sq
 
 call mag_4(xi(2),xi(3), svector,s_sq)
 
+
+
+
+!Initialisation completed. Now run Runge Kutta
 !Pass it all to an array and pass that array to the numerical integrator
-y_init(5:8) = xi
-y_init(5:8) = pvector
-y_init(9:12) = svector
+
+y(1:4) = xi
+y(5:8) = pvector
+y(9:12) = svector
+
+
+consts(1:3) = ci
+consts(4) = 1.0d-3 !Initial integration stepsize
+
+i = 1
+array_rows = 0
+MPDData(i,:) = y
+
+
+
+do while (y(4) .LT. 2.0_dp*PI)
+call rk(y,consts)
+i = i+1
+
+
+
+!Save the output
+if (i .GT. nrows) then
+
+
+call FileOpen(MPDBinaryData)
+print *, 'Writing. Estimated file size is: ', real(i)*real(entries)*real(dp)/1.0d6, ' MB'
+write(10) MPDData
+close(10)
+ 
+MPDData = 0.0_dp
+array_rows = array_rows+(i-1)
+i = 1
+endif
+
+
+MPDData(i,:) = y
+
+enddo
+
+print *, 'Runge Kutta completed'
+print *, 'Final I/O Step'
+
+
+call FileOpen(MPDBinaryData)
+print *, 'Writing. Estimated file size is: ', real(i)*real(entries)*real(dp)/1.0d6, ' MB'
+write(10) MPDData
+close(10)
+
+
 
 
 
@@ -63,6 +125,7 @@ end subroutine MPD
 
 
 !!!!!!!!!-----PRIVATE---!!!!!!!!!1
+
 
 
 

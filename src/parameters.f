@@ -26,7 +26,7 @@ real(kind=dp), parameter :: p0 = 1.0d-3 !pulsar spin period in seconds
 real(kind=dp), parameter :: KeplerianPeriod = 0.10_dp !years
 real(kind=dp), parameter :: eccentricity = 0.60_dp
 real(kind=dp), parameter :: iota = 10.0_dp !Inclination w.r.t equatorial plane in degrees 0.60_dp
-
+real(kind=dp), parameter :: lambda = 1.0_dp !Turn on/off spin curvature coupling
 
 
 
@@ -36,7 +36,6 @@ real(kind=dp), parameter :: N = 3.50d7 !plasma density normalisation
 
 !I/O options
 integer(kind=dp), parameter :: plot = 1 !turn on/off (1/0) numerical accuracy evaluation
-
 
 
 end module parameters
