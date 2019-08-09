@@ -28,21 +28,21 @@ real(kind=dp), dimension(4) :: pvector,svector !4-momentum
 real(kind=dp), dimension(:,:), allocatable :: MPDData
 
 real(kind=dp) :: E,Q,L
-real(kind=dp), dimension(entries) :: y !the array of initial conditions to pass to the rk solver
+real(kind=dp), dimension(12) :: y !the array of initial conditions to pass to the rk solver
 real(kind=dp), dimension(4) :: consts
-integer(kind=dp) :: i,ierr
+integer(kind=dp) :: i,ierr, counter, Narray
 logical :: res
 integer(kind=dp) :: array_rows, stat, stat_io,j
-real(kind=dp) :: x1,x2,x3,x4,p1,p2,p3,p4,s1,s2,s3,s4
 
-allocate(MPDData(nrows,entries),stat=ierr)
+
+allocate(MPDData(nrows,entries+1),stat=ierr)
 
 xi(1) = 0.0_dp !t_init
 xi(2) = semi_major
 xi(3) = PI/2.0_dp
-xi(4) = 0.0_dp
+xi(4) = PI !0.0_dp
 
-
+print *, 'MPD Initial Conditions', xi
 
 !Calculate the initial E,L,Q from the Keplerian orbital parameters
 call calculate_EQL(E,Q,L)
@@ -74,37 +74,40 @@ y(5:8) = pvector
 y(9:12) = svector
 
 
+tau = xi(1)
 consts(1:3) = ci
-consts(4) = 1.0d-3 !Initial integration stepsize
+consts(4) = hs_natural!Initial integration stepsize
+
 
 i = 1
-array_rows = 0
-MPDData(i,:) = y
+MPDData(i,1:12) = y
+MPDData(i,13) = tau
 
 
+counter = 0
+Narray = 0
+do while (counter .LT. 6)
+!do while (y(4) .LT. 2.0_dp*PI)
+counter = counter + 1
 
-do while (y(4) .LT. 2.0_dp*PI)
 call rk(y,consts)
 i = i+1
-
 
 
 !Save the output
 if (i .GT. nrows) then
 
-
-call FileOpen(MPDBinaryData)
-print *, 'Writing. Estimated file size is: ', real(i)*real(entries)*real(dp)/1.0d6, ' MB'
-write(10) MPDData
-close(10)
- 
-MPDData = 0.0_dp
-array_rows = array_rows+(i-1)
-i = 1
+    call FileOpen(MPDBinaryData)
+    write(10) MPDData
+    close(10)
+    Narray = Narray + 1
+    MPDData = 0.0_dp
+    i = 1
 endif
 
 
-MPDData(i,:) = y
+MPDData(i,1:12) = y
+MPDData(i,13) = tau
 
 enddo
 
@@ -112,12 +115,16 @@ print *, 'Runge Kutta completed'
 print *, 'Final I/O Step'
 
 
+if (Narray .NE. 0) then
 call FileOpen(MPDBinaryData)
-print *, 'Writing. Estimated file size is: ', real(i)*real(entries)*real(dp)/1.0d6, ' MB'
 write(10) MPDData
 close(10)
+endif
 
 
+if (plot_MPD .EQ. 1) then
+call ToTextFile(MPDBinaryData)
+endif
 
 
 

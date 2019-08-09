@@ -13,7 +13,9 @@ real(kind=dp), parameter :: light_c = 3.0d8
 real(kind=dp), parameter :: convert_m = light_c**2/(Newton_g*MBH*Msolar) !Multiply by this to go TO Natural units
 real(kind=dp), parameter :: convert_s = light_c**3/(Newton_g*MBH*Msolar) !Multiply by this to go TO Natural units
 real(kind=dp), parameter :: convert_spin= light_c/(Newton_g*(MBH*Msolar)**2.0_dp) !Multiply by this to go TO Natural units
-
+real(kind=dp), parameter :: Rhor = 1.0_dp+sqrt(1.0_dp-a**2) + 1.0d-2 !Horizon + eps
+real(kind=dp), PARAMETER :: electron_charge = 4.80320425D-10 !CGS
+real(kind=dp), PARAMETER :: electron_mass = 9.10938356D-28 !CGS
 
 !MPD
 real(kind=dp), parameter :: KeplerianPeriodSeconds = KeplerianPeriod*365.0_dp*24.0_dp*3600.0_dp
@@ -27,16 +29,19 @@ real(kind=dp), parameter :: zMinus = cos(theta_min)**2.0_dp
 real(kind=dp), parameter :: m0 = MPSR/MBH
 real(kind=dp), parameter :: inertia = 0.40_dp*(MPSR*Msolar)*(RPSR*1.0d3)**2.0_dp !SI units
 real(kind=dp), parameter :: s0 = convert_spin*2.0_dp*PI*inertia/p0 !magnitude of spin spatial vector in natural units
-integer(kind=dp), parameter :: entries = 12 !Number of differetnai eqns 4x(position,spin,momentum)
-
-
+integer(kind=dp), parameter :: entries = 13 !Number of differetnai eqns 4x(position,spin,momentum + proper time)
+real(kind=dp), parameter :: hs_natural = hs * convert_s
+real(kind=dp), parameter :: SpinPeriod = p0 * convert_s
 
 
 !MPD I/O
 integer(kind=dp), parameter :: nrows = 1d4
 integer(kind=dp), parameter :: nrows2 = 2d4
-character(len=200) :: path, MPDBinaryData
+character(len=200) :: path, MPDBinaryData, MPDFormatData
 
+
+
+!Ray tracing
 
 
 
@@ -63,7 +68,7 @@ real(kind = dp) :: PSHRINK = -0.25_dp,PGROW=-0.20_dp, S=0.90_dp
 
 !Some globally defined MPD variables
 real(kind=dp) :: m_sq, s_sq ! mass sqaures and s squared from initial condiitons module
-
+real(kind=dp) :: tau !Proper time. Related to the stepsize
 
 !Christoffel sybols
 real(kind=dp) ::    G0_00, G0_01, G0_02, G0_03, G0_11, G0_12, G0_13, G0_22, G0_23, G0_33,       &

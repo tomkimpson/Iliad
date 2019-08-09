@@ -9,25 +9,66 @@ implicit none
 
 private
 
-public FileOpen
+public FileOpen, ToTextFile
 
 contains
 
-subroutine ReadFile(f)
+
+subroutine ToTextFile(f)
 
 character(len=200) :: f
-integer(kind=dp) :: i,stat,stat_io, j
-real(kind=dp), dimension(:,:), allocatable :: ReadArray
+real(kind=dp), dimension(13) :: row
+real(kind=dp), dimension(:,:), allocatable :: array
+integer(kind=dp) :: i,stat
 
-allocate(ReadArray(nrows,entries))
 
-open(unit = 10,FORM = 'unformatted', file = f, iostat= stat,STATUS = 'OLD', access='stream')
 
-read(10) ReadArray
-read(10) ReadArray
+allocate(array(nrows,entries+1))
+
+!Open the .dat file
+open(unit=10, file=MPDBinaryData , form='unformatted',access='stream')
+
+!Open the .txt file
+open(unit=20, file=MPDFormatData , form='formatted',access='stream')
+
+
+
+
+stat = 0
+
+do while (stat .EQ. 0)
+
+    read(10,iostat=stat) array
+    
+    do i=1,nrows
+    
+    if (array(i,2) .EQ. 0.0_dp) then
+    exit
+    endif
+
+    
+    write(20,*) array(i,2), array(i,3), array(i,4), a
+    
+    
+    enddo
+    array = 0.0_dp
+
+
+
+enddo
+
+
 close(10)
+close(20)
 
-end subroutine ReadFile
+
+
+
+
+
+
+
+end subroutine ToTextFile
 
 
 subroutine FileOpen(f)
@@ -37,14 +78,15 @@ logical :: res
 
 inquire( file=f, exist=res )
 if (res) then
-print *, 'File Exists'
 
-open(10,file=f,status="old",action="write",form='unformatted',position='append',access='stream')
-
+open(unit=10, file=MPDBinaryData,status='old',position='append', form='unformatted',access='stream')
+        
 
 else
-print *, 'new file'
-open(unit = 10,file=f,status="new",action="write",form='unformatted',access='stream')
+
+open(unit=10, file=MPDBinaryData,status='replace', form='unformatted',access='stream')
+
+
 endif
 
 
