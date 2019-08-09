@@ -110,7 +110,7 @@ uvector(3) = 0.0_dp
     do while (v(1) .GT. Rhor .and. v(1) .LT. rstart*10.0_dp)
     call rk_geodesic(v,c)
     
-    print *, counter, v(1)
+ !   print *, counter, v(1)
 
 
     if (plot_RT .EQ. 1) then
@@ -275,31 +275,54 @@ mm = sqrt(r**2 + a**2)
 !need a transform to rdot,zdot,thetadot in tetrad frame?
 
 
+!This is the cartesian tetrad frame
 xdot = ki(2)
 ydot = ki(3)
 zdot = ki(4)
 
-
-
-r_dot = mm*r*sin(theta)*cos(phi)*xdot/sigma &
-       +mm*r*sin(theta)*sin(phi)*ydot/sigma &
-       +mm**2*cos(theta)*zdot/sigma
+!This is the polar tetrad frame
 
 
 
-theta_dot = (mm*cos(theta)*cos(phi) * xdot &
-           +mm*cos(theta)*sin(phi) * ydot &
-           -r*sin(theta)* zdot&
-           )/sigma
 
 
-phi_dot = (-sin(phi)*xdot + cos(phi)*ydot)/(mm*sin(theta))
+ki(2) = sin(theta)*cos(phi) * xdot + &
+        sin(theta)*cos(phi) * ydot + &
+        cos(theta) * zdot
 
 
-print *, r_dot, theta_dot, phi_dot
+ki(3) = cos(theta)*cos(phi) * xdot + &
+        cos(theta)*sin(phi) * ydot - &
+        sin(theta)
 
-print *, r_dot/(sqrt(sigma/delta))
 
+ki(4) = -sin(phi)*xdot + cos(phi)*ydot
+
+
+
+!mm = r
+!r_dot = mm*r*sin(theta)*cos(phi)*xdot/sigma &
+ !      +mm*r*sin(theta)*sin(phi)*ydot/sigma &
+  !     +mm**2*cos(theta)*zdot/sigma
+
+
+
+!theta_dot = (mm*cos(theta)*cos(phi) * xdot &
+ !          +mm*cos(theta)*sin(phi) * ydot &
+  !         -r*sin(theta)* zdot&
+!           )/sigma
+!
+
+!phi_dot = (-sin(phi)*xdot + cos(phi)*ydot)/(mm*sin(theta))
+
+
+!print *, r_dot, theta_dot, phi_dot
+
+!print *, r_dot/(sqrt(sigma/delta))
+
+!ki(2) = r_dot
+!ki(3) = theta_dot
+!ki(4) = phi_dot
 
 call transform_to_global(xi,ui,ki)
 
@@ -314,7 +337,6 @@ phi_dot = ki(4)
 print *, r_dot, theta_dot, phi_dot
 
 
-stop
 
 
 !Define plasma freq
