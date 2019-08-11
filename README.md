@@ -46,5 +46,9 @@ If making edits to the code, try to keep to the [FORTRAN Style Guide](https://ww
 
 * `main.f`. This is the root program which runs all the necessary subroutines. It first determines the PSR spin orbital dynamics (`OrbitalDynamics.f`) and then uses the output as initial conditions for the ray tracing (`RayTracing.f`) 
 
+* `OrbitalDynamics.f`. Computes the PSR spin dynamics, assuming a Kerr background spacetime. Standard position initial conditions are $x^{\mu} = (0,sma,\pi/2, \pi)$, though naturally these can be changed. The intial oreintation of the spin axis is set in `parameters.f`. The integration can be set to have constant stepsize, or adaptive in `parameters.f`
+
+
+
 ##
 
