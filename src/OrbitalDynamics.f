@@ -86,13 +86,12 @@ MPDData(i,13) = tau
 
 counter = 0
 Narray = 0
-do while (counter .LT. 6)
+do while (counter .LT. 100)
 !do while (y(4) .LT. 2.0_dp*PI)
 counter = counter + 1
 
 call rk(y,consts)
 i = i+1
-
 
 !Save the output
 if (i .GT. nrows) then

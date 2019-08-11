@@ -44,6 +44,8 @@ call get_environment_variable("IliadDir", path)
 MPDBinaryData = trim(adjustl(path))//'MPDBinaryData.dat'
 MPDFormatData = trim(adjustl(path))//'MPDFormatData.txt'
 
+RTPath = trim(adjustl(path))//'RT/'
+
 end subroutine setup
 
 

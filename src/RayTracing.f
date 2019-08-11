@@ -29,16 +29,22 @@ real(kind=dp),dimension(:,:),allocatable :: PlotData !Big array to save all data
 integer(kind=dp) :: counter , jj
 real(kind=dp) :: xC, yC, zC,cpt
 real(kind=dp),dimension(4,4) :: metric_covar
-real(kind=dp) :: gtt, gpp, gtp, aa,bb,cc
+real(kind=dp) :: gtt, gpp, gtp, aa,bb,cc, Eobs
+character(len=200) :: FileName,IDStr
+integer(kind=dp) :: FileID
+
+
 
 allocate(MPDData(nrows,entries+1))
 allocate(PlotData(int(1e5),6))
 
 
 
-
+!Load the MPD Data file
 open(unit=10, file=MPDBinaryData , form='unformatted',access='stream')
 
+!The file is composed of multiple arrays of size nrows x entries+1.
+!We load each array in turn.
 
 stat = 0
 do while (stat .EQ. 0)
@@ -55,54 +61,37 @@ do while (stat .EQ. 0)
     endif
 
 
-    r = MPDData(i,2)
-    theta = MPDData(i,3)
 
+
+    !Get 4 velocity
     uvector(1) = MPDData(i,5)/m0
     uvector(2) = MPDData(i,6)/m0
     uvector(3) = MPDData(i,7)/m0
     uvector(4) = MPDData(i,8)/m0
 
-
-!-------PLAY
-
-
-
-uvector(1) = -5.0_dp
-call calculate_covariant_metric(r,theta,metric_covar)
-
-
-
-aa = metric_covar(4,4)
-bb = 2.0_dp*metric_covar(4,1)*uvector(1)
-cc = metric_covar(1,1)*uvector(1)**2 + 1
-
-uvector(4) = (-bb + sqrt(bb**2 - 4.0_dp*aa*cc) ) / (2.0_dp*aa)
-
-
-uvector(2) = 0.0_dp
-uvector(3) = 0.0_dp
-
-!-------PLAY
-
-
-   print *, '4-velocit', uvector
-
-
-
-
-
-
-    xvector(2:4) = MPDData(i,2:4)
+    !Get position coords
     xvector(1) = MPDData(i,13) !tau
+    xvector(2:4) = MPDData(i,2:4)
 
+    !Get spin
     svector = MPDData(i,9:12)
+    
+ 
+    
+    !Check that the 4-velocity satisfies mag = -1
+ 
+    r = MPDData(i,2)
+    theta = MPDData(i,3)
     call mag_4(r,theta,uvector,mag)
-    print *, 'Magnitude of 4-velocity = ', mag
+    !print *, 'Magnitude of 4-velocity = ', mag
     
     
-    
-    call initial_conditions(xvector,uvector,svector, 2.0_dp*PI*1.0d9, &
+    !Set the energy at +infinity
+    Eobs = 2.0_dp*PI*1.0d9
+
+    !SEt initial conditions
+    !Vector v = (r,that,phi,t,pr,ptheta) c = constants + stepsize
+    call initial_conditions(xvector,uvector,svector,Eobs, &
                             v,c)
     
     rstart = v(1)
@@ -125,7 +114,12 @@ uvector(3) = 0.0_dp
 
     !Save to file
 
-open(unit = 11, file = 'temp_test.txt', status = 'replace', form='formatted')
+    
+FileID = i*100
+write (IDStr, "(I5)") FileID
+FileName = trim(adjustl(RTPath))//'RT_'//trim(adjustl(IDStr))//'.txt'
+
+open(unit = FileID, file = FileName, status = 'replace', form='formatted')
 
 
 
@@ -136,25 +130,17 @@ do jj=1,counter-1
     
  !   print *, xC, yC, zC
 
-    write(11,*) xC,yC,zC
+    write(FileID,*) xC,yC,zC
 
 enddo
 
 
-close(11)
+close(FileID)
 
 
 
 
 
-
-
-
-    print *, 'Temp complete'
-
-    stop
-
-    print *, t
     enddo
 
 enddo
@@ -179,6 +165,7 @@ end subroutine RT
 subroutine initial_conditions(xi,ui,si,Eobs, &
                               v,c)
 !Arguments
+
 real(kind=dp), dimension(4), intent(in) :: xi !position
 real(kind=dp), dimension(4), intent(in) :: ui !4 velocity
 real(kind=dp), dimension(4), intent(in) :: si !4 spin
@@ -196,7 +183,7 @@ real(kind=dp) :: r_dot, theta_dot, phi_dot,delta
 real(kind=dp) :: fr,ft, omega2, sigma, Enorm,Eprime, Eprime2, E2
 real(kind=dp) :: pr, ptheta, Lz, B2, kappa, mm
 real(kind=dp) :: xdot, ydot,zdot
-
+real(kind=dp) :: st, sp !stheta, sphi
 !NOTE: CAN WE OPETATE ON THE WHOLE ARRAY TO SPEED UP? 
 
 r = xi(2)
@@ -217,9 +204,6 @@ ki(3) = sin(chi)*sin(psi)
 ki(4) = cos(chi)
 
 
-
-
-
 !Rotate it to account for precession of spin axis
 s1 = si(2)
 s2 = si(3)
@@ -230,33 +214,27 @@ sx = s1*sin(theta)*cos(phi) + s2*r*cos(theta)*cos(phi) - s3*r*sin(theta)*sin(phi
 sy = s1*sin(theta)*sin(phi) + s2*r*cos(theta)*sin(phi) + s3*r*sin(theta)*cos(phi)
 sz = s1*cos(theta) - s2*r*sin(theta)
 
-stheta = atan2(sqrt(sx**2 + sy**2),sz)
-sphi = atan2(sy,sx)
-
-
-
-stheta = 0.0_dp
-sphi = 0.0_dp
+st = atan2(sqrt(sx**2 + sy**2),sz)
+sp = atan2(sy,sx)
 
 
 
 Rz = 0.0_dp
 Ry= 0.0_dp
-Rz(1,1) = cos(sphi)
-Rz(1,2) = -sin(sphi)
-Rz(2,1) = sin(sphi)
-Rz(2,2) = cos(sphi)
+Rz(1,1) = cos(sp)
+Rz(1,2) = -sin(sp)
+Rz(2,1) = sin(sp)
+Rz(2,2) = cos(sp)
 Rz(3,3) = 1.0_dp
 
-Ry(1,1) = cos(stheta)
-Ry(1,3) = sin(stheta)
-Ry(3,1) = -sin(stheta)
-Ry(3,3) = cos(stheta)
+Ry(1,1) = cos(st)
+Ry(1,3) = sin(st)
+Ry(3,1) = -sin(st)
+Ry(3,3) = cos(st)
 Ry(2,2) = 1.0_dp
 
 
 
-print *, 'Tetrad:', ki
 
 
 ki_space = ki(2:4)
@@ -264,7 +242,6 @@ ki_rot  = MATMUL(Rz,MATMUL(Ry,ki_space))
 
 ki(2:4) = ki_space
 
-print *, 'Rotated', ki
 
 
 mm = sqrt(r**2 + a**2)
@@ -301,41 +278,25 @@ ki(4) = -sin(phi)*xdot + cos(phi)*ydot
 
 
 !mm = r
-!r_dot = mm*r*sin(theta)*cos(phi)*xdot/sigma &
- !      +mm*r*sin(theta)*sin(phi)*ydot/sigma &
-  !     +mm**2*cos(theta)*zdot/sigma
+r_dot = mm*r*sin(theta)*cos(phi)*xdot/sigma &
+       +mm*r*sin(theta)*sin(phi)*ydot/sigma &
+       +mm**2*cos(theta)*zdot/sigma
 
 
 
-!theta_dot = (mm*cos(theta)*cos(phi) * xdot &
- !          +mm*cos(theta)*sin(phi) * ydot &
-  !         -r*sin(theta)* zdot&
-!           )/sigma
-!
-
-!phi_dot = (-sin(phi)*xdot + cos(phi)*ydot)/(mm*sin(theta))
+theta_dot = (mm*cos(theta)*cos(phi) * xdot &
+           +mm*cos(theta)*sin(phi) * ydot &
+           -r*sin(theta)* zdot&
+           )/sigma
 
 
-!print *, r_dot, theta_dot, phi_dot
+phi_dot = (-sin(phi)*xdot + cos(phi)*ydot)/(mm*sin(theta))
 
-!print *, r_dot/(sqrt(sigma/delta))
-
-!ki(2) = r_dot
-!ki(3) = theta_dot
-!ki(4) = phi_dot
 
 call transform_to_global(xi,ui,ki)
-
-
-!Does this transform give us in BL coords?
 r_dot = ki(2)
 theta_dot = ki(3)
 phi_dot = ki(4)
-
-
-
-print *, r_dot, theta_dot, phi_dot
-
 
 
 
@@ -364,7 +325,7 @@ phi_dot = phi_dot*Eprime
 !Check energies are equal
 E2 = (sigma-2.0_dp*r)*(r_dot**2/delta + theta_dot**2 + omega2/sigma) + delta*(sin(theta)*phi_dot)**2
 
-print *, 'Energy check:', Eobs/ sqrt(E2)
+!print *, 'Energy check:', Eobs/ sqrt(E2)
 
 pr = r_dot * sigma/delta
 ptheta = sigma*theta_dot
@@ -411,8 +372,6 @@ integer(kind=dp) :: i
 r = xi(2)
 theta = xi(3)
 
-print *, 'VEctor going into global transform:', ki
-print *, '4 velocity going into global transform:', ui
 
 !Compute metric
 call calculate_contravariant_metric(r,theta,metric_contra)
@@ -461,14 +420,6 @@ transform_matrix(4,4) = -u_covar(1)/N3
 
 !Note this is not just a MatMul. See Kulkarni et al.
 
-i = 2
-
-print *,       transform_matrix(1,i)*ki(1) , &
-               transform_matrix(2,i)*ki(2) , &
-               transform_matrix(3,i)*ki(3) , &
-               transform_matrix(4,i)*ki(4) 
-
-
 
 
 do i = 1,4
@@ -481,7 +432,7 @@ enddo
 
 
 !A check
-call mag_4(r,theta,ki_global,mag)
+!call mag_4(r,theta,ki_global,mag)
 !print *, 'Magnitude checks'
 !print *, -(ki(1))**2 + ki(2)**2 + ki(3)**2 + ki(4)**2
 !print *, mag

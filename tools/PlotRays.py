@@ -11,7 +11,7 @@ import os
 path = os.environ['RayTracingDir']
 
 
-d = 2
+d = 3
 
 
 #Set up plotting environment
@@ -28,13 +28,14 @@ elif  (d == 2):
 
 
 #Load data
-all_data = glob.glob(path+'*.txt')
-all_data = ['../src/temp_test.txt']
+
+path = os.environ['IliadDir']
+all_data = glob.glob(path+'RT/*.txt')
+#all_data = ['../src/temp_test.txt']
 
 def plotter(file):
 
     data=np.loadtxt(file)
-
     x = data[:,0]
     y = data[:,1]
     z = data[:,2]

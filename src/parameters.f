@@ -18,15 +18,15 @@ real(kind=dp), parameter :: a = 0.60_dp !BH spin parameter
 
 real(kind=dp), parameter :: MPSR = 1.40_dp !PSR mass is solar masses
 real(kind=dp), parameter :: RPSR = 10.0_dp !PSR radius in km
-real(kind=dp), parameter :: stheta = PI/12.0_dp, sphi = 0.0_dp !Initial angle of spin axis
+real(kind=dp), parameter :: stheta = 0.0_dp, sphi = 0.0_dp !Initial angle of spin axis
 real(kind=dp), parameter :: p0 = 1.0d-3 !pulsar spin period in seconds
 real(kind=dp), parameter :: chi = PI/2.0_dp !Polar angle between spin and radiation axis
 
 !Orbital parameters
 real(kind=dp), parameter :: KeplerianPeriod = 0.0050_dp !years
 real(kind=dp), parameter :: eccentricity = 0.10_dp
-real(kind=dp), parameter :: iota = 10.0_dp !Inclination w.r.t equatorial plane in degrees 0.60_dp
-real(kind=dp), parameter :: lambda = 1.0_dp !Turn on/off spin curvature coupling
+real(kind=dp), parameter :: iota = 0.0_dp !Inclination w.r.t equatorial plane in degrees 0.60_dp
+real(kind=dp), parameter :: lambda = 0.0_dp !Turn on/off spin curvature coupling
 
 
 !Plasma paramters
@@ -37,7 +37,7 @@ real(kind=dp), parameter :: N = 3.50d7 !plasma density normalisation
 !Integration options
 integer(kind=dp)  :: adaptive = 0 !turn on/off (1/0) adaptive stepsize.
 !Note if off, it is important to pay attention to stepsize. Not a paramter since changed between MPD and RT
-real(kind=dp), parameter :: hs = 2.0d-4 !Fixed timing resolution in seconds
+real(kind=dp), parameter :: hs = 1.0d-5 !Fixed timing resolution in seconds
 
 
 

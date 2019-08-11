@@ -17,7 +17,7 @@ This code is written in FORTRAN with a [gfortran](https://gcc.gnu.org/wiki/GFort
 brew install gcc
 ```
 
-### Starting steps
+### First steps
 After [cloning the repo](https://help.github.com/en/articles/cloning-a-repository), the first thing to do is to set the path to the output files that the code will produce.
 This can be done by setting the environment variable as
 
@@ -42,5 +42,9 @@ to compile and run the code. Once you have checked that everything is running OK
 If making edits to the code, try to keep to the [FORTRAN Style Guide](https://www.fortran90.org/src/best-practices.html)
 
 
+## Structure
 
+* `main.f`. This is the root program which runs all the necessary subroutines. It first determines the PSR spin orbital dynamics (`OrbitalDynamics.f`) and then uses the output as initial conditions for the ray tracing (`RayTracing.f`) 
+
+##
 
