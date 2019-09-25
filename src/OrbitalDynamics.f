@@ -86,16 +86,20 @@ counter = 0
 Narray = 0
 
 
-do while (y(4) - xi(4) .LT. Norbit*2.0_dp*PI)
+!do while (y(4) - xi(4) .LT. Norbit*2.0_dp*PI)
+
+do while (i .LT. 2)
+
 counter = counter + 1
 
-print *, i, y(4) - xi(4)
+!print *, i, y(4) - xi(4)
 
 call rk(y,consts)
 i = i+1
 
 !Save the output
 if (i .GT. nrows) then
+    !Greater than size of save array. Time to do some IO
     call FileOpen(MPDBinaryData)
     write(10) MPDData
     close(10)
@@ -109,23 +113,19 @@ MPDData(i,13) = tau
 
 enddo
 
-print *, 'Runge Kutta completed'
-print *, 'Final I/O Step'
-print *, Narray
-stop
 
-if (Narray .NE. 0) then
+!Save the data in binary format
 call FileOpen(MPDBinaryData)
 write(10) MPDData
 close(10)
-endif
 
-
+!And save in a readable format for plotting
 if (plot_MPD .EQ. 1) then
 print *, 'saving'
 call ToTextFile(MPDBinaryData)
 endif
 
+print *, 'TESTING. MPDOUT = ', Narray, i
 
 
 end subroutine MPD

@@ -36,7 +36,6 @@ real(kind=dp), parameter :: SpinPeriod = p0 * convert_s
 
 !MPD I/O
 integer(kind=dp), parameter :: nrows = 1d4
-integer(kind=dp), parameter :: nrows2 = 2d4
 character(len=200) :: path, MPDBinaryData, MPDFormatData, RTPath
 
 

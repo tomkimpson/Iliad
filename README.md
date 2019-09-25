@@ -46,6 +46,8 @@ If making edits to the code, try to keep to the [FORTRAN Style Guide](https://ww
 
 ## Structure
 
+* `parameters.f`. This is effectively the config file for specifying the system parameters
+
 * `main.f`. This is the root program which runs all the necessary subroutines. It first determines the PSR spin orbital dynamics (`OrbitalDynamics.f`) and then uses the output as initial conditions for the ray tracing (`RayTracing.f`) 
 
 * `OrbitalDynamics.f`. Computes the PSR spin dynamics, assuming a Kerr background spacetime. Standard position initial conditions are *(t0, r0, theta0, phi0) = 0,sma,PI/2,PI )*, though naturally these can be changed. The intial oreintation of the spin axis is set in `parameters.f`. The integration can be set to have constant stepsize, or adaptive in `parameters.f`. The output is a single file of size NSTEPS x 13 i.e. number of integration steps and 3 x 4 vectors (positions, spin ,momentum) plus the proper time (related to the stepsize). If `plot_MPD` is set to 1 in `parameters.f`, then the output file will also be written as a readable  text file (useful for e.g. plotting).

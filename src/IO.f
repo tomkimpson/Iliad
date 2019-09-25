@@ -22,7 +22,6 @@ real(kind=dp), dimension(:,:), allocatable :: array
 integer(kind=dp) :: i,stat
 
 
-print *, 'Called ToTExtFile'
 allocate(array(nrows,entries+1))
 
 !Open the .dat file
@@ -40,14 +39,12 @@ do while (stat .EQ. 0)
 
     read(10,iostat=stat) array
     
-    print *, array, nrows
     do i=1,nrows
     
     if (array(i,2) .EQ. 0.0_dp) then
     exit
     endif
 
-    print *, 'Writing', MPDFormatData
     
     write(20,*) array(i,2), array(i,3), array(i,4), a
     
@@ -64,9 +61,6 @@ close(10)
 close(20)
 
 
-
-
-stop
 
 
 

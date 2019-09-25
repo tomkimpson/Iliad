@@ -52,9 +52,19 @@ do while (stat .EQ. 0)
 
     !For each array
     read(10,iostat=stat) MPDData
+    if (stat .NE. 0) then
+    exit
+    endif
+
+
+    print *, 'Loaded MPD DATA', stat
+
 
     !For each row in array   Bring OpenMp in here
     do i = 1,nrows
+
+
+    print *, 'row:', i
 
     if (MPDData(i,2) .EQ. 0.0_dp) then
     exit
@@ -83,7 +93,7 @@ do while (stat .EQ. 0)
     r = MPDData(i,2)
     theta = MPDData(i,3)
     call mag_4(r,theta,uvector,mag)
-    !print *, 'Magnitude of 4-velocity = ', mag
+    print *, 'Magnitude of 4-velocity = ', mag
     
     
     !Set the energy at +infinity
@@ -91,6 +101,7 @@ do while (stat .EQ. 0)
 
     !SEt initial conditions
     !Vector v = (r,that,phi,t,pr,ptheta) c = constants + stepsize
+    
     call initial_conditions(xvector,uvector,svector,Eobs, &
                             v,c)
     
@@ -99,7 +110,7 @@ do while (stat .EQ. 0)
     do while (v(1) .GT. Rhor .and. v(1) .LT. rstart*10.0_dp)
     call rk_geodesic(v,c)
     
- !   print *, counter, v(1)
+    print *, counter, v(1),v(2), c(4)
 
 
     if (plot_RT .EQ. 1) then
@@ -108,9 +119,12 @@ do while (stat .EQ. 0)
 
 
     counter = counter + 1
+
+
     enddo
 
 
+stop
 
     !Save to file
 
@@ -204,12 +218,16 @@ ki(3) = sin(chi)*sin(psi)
 ki(4) = cos(chi)
 
 
+
+
 !Rotate it to account for precession of spin axis
 s1 = si(2)
 s2 = si(3)
 s3 = si(4)
 
-!no need for BL here - defined locally. I think
+
+
+!no need for BL here - defined locally. 
 sx = s1*sin(theta)*cos(phi) + s2*r*cos(theta)*cos(phi) - s3*r*sin(theta)*sin(phi)
 sy = s1*sin(theta)*sin(phi) + s2*r*cos(theta)*sin(phi) + s3*r*sin(theta)*cos(phi)
 sz = s1*cos(theta) - s2*r*sin(theta)
@@ -277,6 +295,9 @@ ki(4) = -sin(phi)*xdot + cos(phi)*ydot
 
 
 
+
+print *,'xdot', xdot, ydot, zdot
+
 !mm = r
 r_dot = mm*r*sin(theta)*cos(phi)*xdot/sigma &
        +mm*r*sin(theta)*sin(phi)*ydot/sigma &
@@ -293,10 +314,15 @@ theta_dot = (mm*cos(theta)*cos(phi) * xdot &
 phi_dot = (-sin(phi)*xdot + cos(phi)*ydot)/(mm*sin(theta))
 
 
+
+print *, 'rdot', r_dot, theta_dot, phi_dot
 call transform_to_global(xi,ui,ki)
 r_dot = ki(2)
 theta_dot = ki(3)
 phi_dot = ki(4)
+
+
+
 
 
 
@@ -315,10 +341,18 @@ Eprime2 = (Eobs**2 - (sigma-2.0_dp*r)*omega2/sigma)/Enorm
 Eprime = sqrt(Eprime2)
 
 
+
+
+print *, 'IC', r_dot, theta_dot, phi_dot
+stop
+
+
 !Correct for E normalisation
 r_dot = r_dot * Eprime
 theta_dot = theta_dot*Eprime
 phi_dot = phi_dot*Eprime
+
+
 
 
 

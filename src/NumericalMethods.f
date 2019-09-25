@@ -95,7 +95,7 @@ yerr = y1 + cbar1*k1 + cbar3*k3 + cbar4*k4 + cbar5*k5 + cbar6*k6
 
 
 deltaErr = abs(ynew - yerr)
-yscal = abs(y1) + abs(k1) + 1.0d-3
+yscal = abs(y1) + abs(k1) !+ 1.0d-3
 ratio = deltaErr/yscal
 errmax = escal * maxval(ratio)
 

@@ -16,7 +16,6 @@ call setup()
 !Generate the orbit
 print *, 'Calling MPD'
 call MPD()
-stop
 
 
 !Use the orbit as initial conditions for ray tracing. 
@@ -56,6 +55,27 @@ print *, 'Iliad is running'
 
 print *, 'You have selected the following settings:'
 
+print *, '-------------------------'
+print *, 'BH:'
+print *, '-------------------------'
+print *, 'BH mass =', MBH/1.0d6, ' BH spin = ', a
+print *, '-------------------------'
+print *, 'PSR:'
+print *, '-------------------------'
+print *, 'PSR mass =', MPSR, ' PSR spin period = ', p0
+print *, 'Stheta = ', stheta, 'Sphi = ', sphi
+print *, 'Chi angle = ', chi
+print *, '-------------------------'
+print *, 'Orbit:'
+print *, '-------------------------'
+print *, 'Period = ', KeplerianPeriod, ' years. Eccentricity = ', e
+print *, 'Inclination = ', iota, ' Number of orbits = ', Norbit
+
+if (lambda .EQ. 1) then
+print *, 'Spin-curvature coupling is turned on'
+else
+print *, 'Spin-curvature coupling is turned off'
+endif
 
 
 
