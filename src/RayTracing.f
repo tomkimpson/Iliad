@@ -71,13 +71,16 @@ do while (stat .EQ. 0)
     endif
 
 
-
+    
 
     !Get 4 velocity
     uvector(1) = MPDData(i,5)/m0
     uvector(2) = MPDData(i,6)/m0
     uvector(3) = MPDData(i,7)/m0
     uvector(4) = MPDData(i,8)/m0
+
+    print *, 'Uvector=', uvector
+
 
     !Get position coords
     xvector(1) = MPDData(i,13) !tau
@@ -107,8 +110,10 @@ do while (stat .EQ. 0)
     
     rstart = v(1)
     counter = 1
-    do while (v(1) .GT. Rhor .and. v(1) .LT. rstart*10.0_dp)
-    call rk_geodesic(v,c)
+ !   do while (v(1) .GT. Rhor .and. v(1) .LT. rstart*10.0_dp)
+  
+ do while (counter .lt. 10)
+ call rk_geodesic(v,c)
     
     print *, counter, v(1),v(2), c(4)
 
@@ -295,7 +300,7 @@ ki(4) = -sin(phi)*xdot + cos(phi)*ydot
 
 
 
-
+print *, 'ki=', ki
 print *,'xdot', xdot, ydot, zdot
 
 !mm = r
@@ -322,6 +327,7 @@ theta_dot = ki(3)
 phi_dot = ki(4)
 
 
+print *, 'rdot2', r_dot, theta_dot, phi_dot
 
 
 
@@ -344,8 +350,8 @@ Eprime = sqrt(Eprime2)
 
 
 print *, 'IC', r_dot, theta_dot, phi_dot
-stop
 
+stop
 
 !Correct for E normalisation
 r_dot = r_dot * Eprime
@@ -402,6 +408,13 @@ real(kind=dp), dimension(4,4) :: metric_contra, metric_covar, transform_matrix
 real(kind=dp), dimension(4) :: u_covar, u_contra, ki_global
 integer(kind=dp) :: i
 
+
+
+
+
+print *, 'transform to global'
+print *, '4-vel. Contravar = ', ui
+print *, 'IN:', ki
 !Load position
 r = xi(2)
 theta = xi(3)
@@ -423,12 +436,17 @@ u_covar(i) = metric_covar(i,1) * u_contra(1) + &
 enddo
 
 
+
+print *, u_contra(3), u_covar(3)
+
 delta = r**2.0_dp + a**2.0_dp - 2.0_dp*r
 N1 = sqrt(- metric_covar(2,2) * (u_covar(1) * u_contra(1) + u_covar(4)*u_contra(4)) * (1.0_dp + u_covar(3)*u_contra(3)) )
 N2 = sqrt(metric_covar(3,3) * (1.0_dp + u_covar(3) * u_contra(3)) )
 N3 = sqrt(-(u_covar(1) * u_contra(1) + u_covar(4)*u_contra(4))*delta*sin(theta)**2)
 
 
+
+print *, 'Calc = ', ki(3)/N2
 
 transform_matrix(1,:) = u_contra
 
@@ -465,11 +483,15 @@ ki_global(i) = transform_matrix(1,i)*ki(1) + &
 enddo
 
 
+
+
+print *, 'out:', ki_global
+
 !A check
-!call mag_4(r,theta,ki_global,mag)
-!print *, 'Magnitude checks'
-!print *, -(ki(1))**2 + ki(2)**2 + ki(3)**2 + ki(4)**2
-!print *, mag
+call mag_4(r,theta,ki_global,mag)
+print *, 'Magnitude checks'
+print *, -(ki(1))**2 + ki(2)**2 + ki(3)**2 + ki(4)**2
+print *, mag
 ki = ki_global
 
 end subroutine transform_to_global
