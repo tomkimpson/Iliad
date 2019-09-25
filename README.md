@@ -1,8 +1,10 @@
 # Iliad - General Relativistic Pulsar Timing in Kerr Spacetime
 
-This code calculates the time-frequency behaviour from a pulsar orbiting a massive black hole (BH).
+This code calculates the time-frequency signal from a pulsar orbiting a massive black hole (BH), account for all relativistic and astrophysical effects.
+ 
+This repo  has two main ingredients. The first part determines the orbital trajectory of a spinning body. It is based on the [Spin Curvature Dynamics](https://github.com/tomkimpson/SpinCurvatureDynamics) code. The second part calculates the trajectory of light from the pulsar, based on the [ForwardRayTracing](https://github.com/tomkimpson/ForwardRayTracing) code. This repo then combines these two tools so that the user can specify some BH-PSR system and consistently generate the frequency-dependent photon ToAs. Some work using these methods has been published in [Kimpson 2019a](https://ui.adsabs.harvard.edu/abs/2019MNRAS.484.2411K/abstract)[b](https://ui.adsabs.harvard.edu/abs/2019MNRAS.486..360K/abstract). 
 
-This code has two main ingredients. The first part determines the orbital trajectory of a spinning body. It is based on the [Spin Curvature Dynamics](https://github.com/tomkimpson/SpinCurvatureDynamics) code. The second part calculates the trajectory of light from the pulsar, based on the [ForwardRayTracing](https://github.com/tomkimpson/ForwardRayTracing) code. This repo combines these two tools so that the user can specify some BH-PSR system and consistently generate the frequency-dependent photon ToAs.
+The public release of this code via this repo is still in development. Whilst the bare-bones base code is available for constructing the signal, modules relating to the signal analysis and computational optimization are still due to be released, subject to internal checks and development. 
 
 
 ## Getting Started
