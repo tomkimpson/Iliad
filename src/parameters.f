@@ -27,6 +27,7 @@ real(kind=dp), parameter :: KeplerianPeriod = 0.0050_dp !years
 real(kind=dp), parameter :: eccentricity = 0.10_dp
 real(kind=dp), parameter :: iota = 0.0_dp !Inclination w.r.t equatorial plane in degrees 0.60_dp
 real(kind=dp), parameter :: lambda = 0.0_dp !Turn on/off spin curvature coupling
+real(kind=dp), parameter :: Norbit = 1.0_dp !Number of orbits
 
 
 !Plasma paramters
@@ -35,7 +36,7 @@ real(kind=dp), parameter :: N = 3.50d7 !plasma density normalisation
 
 
 !Integration options
-integer(kind=dp)  :: adaptive = 0 !turn on/off (1/0) adaptive stepsize.
+integer(kind=dp)  :: adaptive = 1 !turn on/off (1/0) adaptive stepsize.
 !Note if off, it is important to pay attention to stepsize. Not a paramter since changed between MPD and RT
 real(kind=dp), parameter :: hs = 1.0d-5 !Fixed timing resolution in seconds
 

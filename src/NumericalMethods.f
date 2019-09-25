@@ -143,6 +143,9 @@ real(kind=dp), dimension(size(y)) :: k1,k2,k3,k4,k5,k6
 real(kind=dp), dimension(size(y)) :: ynew, yerr,deltaErr, yscal, ratio
 real(kind=dp) :: h, errmax
 
+
+11 continue
+
 !Set the stepsize
 h = c(4)
 
@@ -197,8 +200,10 @@ errmax = escal * maxval(ratio)
 
 if (errmax .GT. 1) then
 !The error is too big. Reduce the step size and exit without updating the variable vector
-
 call adaptive_shrink(errmax,h)
+
+goto 11
+
 else
 !The error is OK. Grow the stepsize a little and set the variables for the next integration step
 

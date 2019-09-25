@@ -42,8 +42,6 @@ xi(2) = semi_major
 xi(3) = PI/2.0_dp
 xi(4) = PI !0.0_dp
 
-print *, 'MPD Initial Conditions', xi
-
 !Calculate the initial E,L,Q from the Keplerian orbital parameters
 call calculate_EQL(E,Q,L)
 ci(1) = E
@@ -86,16 +84,18 @@ MPDData(i,13) = tau
 
 counter = 0
 Narray = 0
-do while (counter .LT. 100)
-!do while (y(4) .LT. 2.0_dp*PI)
+
+
+do while (y(4) - xi(4) .LT. Norbit*2.0_dp*PI)
 counter = counter + 1
+
+print *, i, y(4) - xi(4)
 
 call rk(y,consts)
 i = i+1
 
 !Save the output
 if (i .GT. nrows) then
-
     call FileOpen(MPDBinaryData)
     write(10) MPDData
     close(10)
@@ -104,7 +104,6 @@ if (i .GT. nrows) then
     i = 1
 endif
 
-
 MPDData(i,1:12) = y
 MPDData(i,13) = tau
 
@@ -112,7 +111,8 @@ enddo
 
 print *, 'Runge Kutta completed'
 print *, 'Final I/O Step'
-
+print *, Narray
+stop
 
 if (Narray .NE. 0) then
 call FileOpen(MPDBinaryData)
@@ -122,6 +122,7 @@ endif
 
 
 if (plot_MPD .EQ. 1) then
+print *, 'saving'
 call ToTextFile(MPDBinaryData)
 endif
 

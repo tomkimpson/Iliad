@@ -2,9 +2,9 @@
 
 This code calculates the time-frequency signal from a pulsar orbiting a massive black hole (BH), account for all relativistic and astrophysical effects.
  
-This repo  has two main ingredients. The first part determines the orbital trajectory of a spinning body. It is based on the [Spin Curvature Dynamics](https://github.com/tomkimpson/SpinCurvatureDynamics) code. The second part calculates the trajectory of light from the pulsar, based on the [ForwardRayTracing](https://github.com/tomkimpson/ForwardRayTracing) code. This repo then combines these two tools so that the user can specify some BH-PSR system and consistently generate the frequency-dependent photon ToAs. Some work using these methods has been published in [Kimpson 2019a](https://ui.adsabs.harvard.edu/abs/2019MNRAS.484.2411K/abstract)[b](https://ui.adsabs.harvard.edu/abs/2019MNRAS.486..360K/abstract). 
+This repo  has two main ingredients. The first part determines the orbital trajectory of a spinning body. It is based on the [Spin Curvature Dynamics](https://github.com/tomkimpson/SpinCurvatureDynamics) code. The second part calculates the trajectory of light from the pulsar, based on the [ForwardRayTracing](https://github.com/tomkimpson/ForwardRayTracing) code. This repo then combines these two tools so that the user can specify some BH-PSR system and consistently generate the frequency-dependent photon ToAs. Some work using these methods has been published in [Kimpson 2019a](https://ui.adsabs.harvard.edu/abs/2019MNRAS.484.2411K/abstract),[b](https://ui.adsabs.harvard.edu/abs/2019MNRAS.486..360K/abstract). 
 
-The public release of this code via this repo is still in development. Whilst the bare-bones base code is available for constructing the signal, modules relating to the signal analysis and computational optimization are still due to be released, subject to internal checks and development. 
+**The public release of this code via this repo is still in development.** Whilst the bare-bones base code is available for constructing the signal, modules relating to the signal analysis and computational optimization are still due to be released, subject to internal checks and development. 
 
 
 ## Getting Started
@@ -12,7 +12,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-This code is written in FORTRAN with a [gfortran](https://gcc.gnu.org/wiki/GFortran) compiler. **Other compilers have not been tested.** The gfortran installation binaries can be found [here](https://gcc.gnu.org/wiki/GFortranBinariels), although typically gfortran comes pre-installed on most Linux/Unix systems. If you have [Homebew](https://brew.sh/) installed on OSX, you can simply run 
+The main part of the code (w.r.t orbital dynamcis, ray tracing) is written in FORTRAN with a [gfortran](https://gcc.gnu.org/wiki/GFortran) compiler. **Other compilers have not been tested.** The gfortran installation binaries can be found [here](https://gcc.gnu.org/wiki/GFortranBinariels), although typically gfortran comes pre-installed on most Linux/Unix systems. If you have [Homebew](https://brew.sh/) installed on OSX, you can simply run 
 
 
 ```
