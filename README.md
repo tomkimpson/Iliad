@@ -55,3 +55,11 @@ If making edits to the code, try to keep to the [FORTRAN Style Guide](https://ww
 * `RayTracing.f`. Photon trajectory emiited from the PSR described by `OrbitalDynamics`. 
 ##
 
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+
+
+
