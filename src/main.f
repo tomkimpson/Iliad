@@ -14,8 +14,8 @@ call setup()
 
 
 !Generate the orbit
-print *, 'Calling MPD'
-call MPD()
+!print *, 'Calling MPD'
+!call MPD()
 
 
 

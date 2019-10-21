@@ -11,7 +11,7 @@ implicit none
 
 public RT
 
-private initial_conditions
+private initial_conditions, RT_Forward, RT_Backward, GeneralInitialConditions
 
 contains
 
@@ -49,15 +49,92 @@ open(unit=10, file=MPDBinaryData , form='unformatted',access='stream')
 stat = 0
 do while (stat .EQ. 0)
 
-
     !For each array
     read(10,iostat=stat) MPDData
     if (stat .NE. 0) then
     exit
     endif
 
-
     print *, 'Loaded MPD DATA', stat
+
+
+
+    do i = 1,nrows
+
+
+    if (MPDData(i,2) .EQ. 0.0_dp) then
+    !End of data array
+    exit
+    endif
+
+
+    if ( mod(real(i,kind=dp), RepRes) .EQ. 0.0_dp) then
+ 
+
+    !Get the data in terms of vectors
+    !Get position coords
+    xvector(1) = MPDData(i,13) !tau
+    xvector(2:4) = MPDData(i,2:4)
+
+
+
+
+
+
+
+
+
+    if (RayTracingDirection .EQ. +1.0_dp) then
+    !Forward
+    call RT_Forward()
+    else if (RayTracingDirection .EQ. -1.0_dp) then
+    !Backward
+    call RT_Backward(xvector)
+    else
+    !Exit
+    print *, 'Error: You need to set the ray tracing method'
+    stop
+
+
+    endif
+
+            print *, RayTracingDirection
+    stop
+
+
+
+
+
+
+
+
+
+
+    endif
+
+
+
+    enddo
+
+
+    stop
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     !For each row in array   Bring OpenMp in here
@@ -66,9 +143,6 @@ do while (stat .EQ. 0)
 
     print *, 'row:', i
 
-    if (MPDData(i,2) .EQ. 0.0_dp) then
-    exit
-    endif
 
 
     
@@ -81,10 +155,6 @@ do while (stat .EQ. 0)
 
     print *, 'Uvector=', uvector
 
-
-    !Get position coords
-    xvector(1) = MPDData(i,13) !tau
-    xvector(2:4) = MPDData(i,2:4)
 
     !Get spin
     svector = MPDData(i,9:12)
@@ -212,96 +282,119 @@ phi = xi(4)
 sigma = r**2 +a**2*cos(theta)**2
 delta = r**2 -2.0_dp*r + a**2
 
-!Set dipole axis
-tau = xi(1)
-psi = 2.0_dp*PI*tau/SpinPeriod
-
-!Define direction tangent vector
-ki(1) = 1.0_dp
-ki(2) = sin(chi)*cos(psi)
-ki(3) = sin(chi)*sin(psi)
-ki(4) = cos(chi)
-
-
-
-
-!Rotate it to account for precession of spin axis
-s1 = si(2)
-s2 = si(3)
-s3 = si(4)
-
-
-
-!no need for BL here - defined locally. 
-sx = s1*sin(theta)*cos(phi) + s2*r*cos(theta)*cos(phi) - s3*r*sin(theta)*sin(phi)
-sy = s1*sin(theta)*sin(phi) + s2*r*cos(theta)*sin(phi) + s3*r*sin(theta)*cos(phi)
-sz = s1*cos(theta) - s2*r*sin(theta)
-
-st = atan2(sqrt(sx**2 + sy**2),sz)
-sp = atan2(sy,sx)
-
-
-
-Rz = 0.0_dp
-Ry= 0.0_dp
-Rz(1,1) = cos(sp)
-Rz(1,2) = -sin(sp)
-Rz(2,1) = sin(sp)
-Rz(2,2) = cos(sp)
-Rz(3,3) = 1.0_dp
-
-Ry(1,1) = cos(st)
-Ry(1,3) = sin(st)
-Ry(3,1) = -sin(st)
-Ry(3,3) = cos(st)
-Ry(2,2) = 1.0_dp
 
 
 
 
 
-ki_space = ki(2:4)
-ki_rot  = MATMUL(Rz,MATMUL(Ry,ki_space))
+!-----------------------------------------------
+!-----------------------------------------------
+!-----------------------------------------------
+!-----------------------------------------------
+!-----------------------------------------------
 
-ki(2:4) = ki_space
+!!Set dipole axis
+!tau = xi(1)
+!psi = 2.0_dp*PI*tau/SpinPeriod
+!
+!!Define direction tangent vector
+!ki(1) = 1.0_dp
+!ki(2) = sin(chi)*cos(psi)
+!ki(3) = sin(chi)*sin(psi)
+!ki(4) = cos(chi)
+!
+!
+!
+!
+!!Rotate it to account for precession of spin axis
+!s1 = si(2)
+!s2 = si(3)
+!s3 = si(4)
+!
+!
+!
+!!no need for BL here - defined locally. 
+!sx = s1*sin(theta)*cos(phi) + s2*r*cos(theta)*cos(phi) - s3*r*sin(theta)*sin(phi)
+!sy = s1*sin(theta)*sin(phi) + s2*r*cos(theta)*sin(phi) + s3*r*sin(theta)*cos(phi)
+!sz = s1*cos(theta) - s2*r*sin(theta)
+!
+!st = atan2(sqrt(sx**2 + sy**2),sz)
+!sp = atan2(sy,sx)
+!
+!
+!
+!Rz = 0.0_dp
+!Ry= 0.0_dp
+!Rz(1,1) = cos(sp)
+!Rz(1,2) = -sin(sp)
+!Rz(2,1) = sin(sp)
+!Rz(2,2) = cos(sp)
+!Rz(3,3) = 1.0_dp
+!
+!Ry(1,1) = cos(st)
+!Ry(1,3) = sin(st)
+!Ry(3,1) = -sin(st)
+!Ry(3,3) = cos(st)
+!Ry(2,2) = 1.0_dp
+!
+!
+!
+!
+!
+!ki_space = ki(2:4)
+!ki_rot  = MATMUL(Rz,MATMUL(Ry,ki_space))
+!
+!ki(2:4) = ki_space
+!
+!
+!
+!mm = sqrt(r**2 + a**2)
+!
+!
+!
+!!ki is still xdot ,ydoy,zdot 
+!!need a transform to rdot,zdot,thetadot in tetrad frame?
+!
+!
+!!This is the cartesian tetrad frame
+!xdot = ki(2)
+!ydot = ki(3)
+!zdot = ki(4)
+!
+!!This is the polar tetrad frame
+!
+!
+!
+!
+!
+!ki(2) = sin(theta)*cos(phi) * xdot + &
+!        sin(theta)*cos(phi) * ydot + &
+!        cos(theta) * zdot
+!
+!
+!ki(3) = cos(theta)*cos(phi) * xdot + &
+!        cos(theta)*sin(phi) * ydot - &
+!        sin(theta)
+!
+!
+!ki(4) = -sin(phi)*xdot + cos(phi)*ydot
+!
+!
+!
+!print *, 'ki=', ki
+!print *,'xdot', xdot, ydot, zdot
+!
 
 
 
-mm = sqrt(r**2 + a**2)
+
+!-----------------------------------------------
+!-----------------------------------------------
+!-----------------------------------------------
+!-----------------------------------------------
+!-----------------------------------------------
 
 
-
-!ki is still xdot ,ydoy,zdot 
-!need a transform to rdot,zdot,thetadot in tetrad frame?
-
-
-!This is the cartesian tetrad frame
-xdot = ki(2)
-ydot = ki(3)
-zdot = ki(4)
-
-!This is the polar tetrad frame
-
-
-
-
-
-ki(2) = sin(theta)*cos(phi) * xdot + &
-        sin(theta)*cos(phi) * ydot + &
-        cos(theta) * zdot
-
-
-ki(3) = cos(theta)*cos(phi) * xdot + &
-        cos(theta)*sin(phi) * ydot - &
-        sin(theta)
-
-
-ki(4) = -sin(phi)*xdot + cos(phi)*ydot
-
-
-
-print *, 'ki=', ki
-print *,'xdot', xdot, ydot, zdot
 
 !mm = r
 r_dot = mm*r*sin(theta)*cos(phi)*xdot/sigma &
@@ -495,5 +588,167 @@ print *, mag
 ki = ki_global
 
 end subroutine transform_to_global
+
+
+
+
+
+subroutine RT_Forward()
+
+        print *, 'for'
+end subroutine RT_Forward
+
+
+subroutine RT_Backward(xi)
+!Arguments
+real(kind=dp), dimension(4), intent(in) :: xi !position of MPD
+!Other
+real(kind=dp) :: xT, yT, zT, mm
+real(kind=dp) :: alpha,beta
+real(kind=dp) :: xprime, yprime, zprime
+real(kind=dp) :: w, r, theta,phi,t
+real(kind=dp) :: rdot, thetadot, phidot, zdot, sig,u,vv
+real(kind=dp), dimension(7) :: ray !Ray initial conditions
+real(kind=dp), dimension(6) :: v
+real(kind=dp), dimension(4) :: c
+
+
+!The target points 
+mm = sqrt(xi(2)**2 + a**2)
+xT = mm * sin(xi(3))*cos(xi(4))
+yT = mm * sin(xi(3))*sin(xi(4))
+zT = mm * cos(xi(3))
+
+!Initial guess at the coordinates of the image plane
+alpha = yT
+beta = xT*cos(ThetaObs) + zT*sin(ThetaObs)
+
+
+!Convert to the primed Cartesian frame
+xprime = sqrt(Robs**2.0_dp +a**2.0_dp) * sin(ThetaObs) - beta*cos(ThetaObs)
+yprime = alpha
+zprime = Robs*cos(ThetaObs) + beta*sin(ThetaObs)
+
+!Convert it to Boyer Lindquist
+w = xprime**2.0_dp +yprime**2.0_dp +zprime **2.0_dp - a**2.0_dp
+r = sqrt((w+sqrt(w**2.0_dp+4.0_dp*a**2.0_dp*zprime**2.0_dp))/2.0_dp)
+theta = acos(zprime/r)
+phi = atan2(yprime,xprime)
+t=0.0_dp
+
+
+!And then get the derivatives
+sig = r**2.0_dp +(a*cos(theta))**2.0_dp
+u = sqrt(r**2.0_dp+a**2.0_dp)
+vv= -sin(ThetaObs)*cos(phi)
+zdot = -1.0_dp
+
+
+rdot = -zdot*(-u**2.0*cos(ThetaObs)*cos(theta)+r*u*vv*sin(theta))/sig
+thetadot = -zdot*(cos(ThetaObs)*r*sin(theta)+u*vv*cos(theta))/sig	
+phidot = -zdot*sin(ThetaObs)*sin(phi)/(u*sin(theta))
+
+!Write to array
+ray(1) = t
+ray(2) = r
+ray(3) = theta
+ray(4) = phi
+ray(5) = rdot
+ray(6) = thetadot
+ray(7) = phidot
+
+
+call GeneralInitialConditions(ray,v,c)
+
+end subroutine RT_Backward
+
+
+
+
+
+subroutine GeneralInitialConditions(ray,v,c)
+!Argument
+real(kind=dp), dimension(7) :: ray !Ray initial conditions
+real(kind=dp), dimension(6), intent(out) :: v
+real(kind=dp), dimension(4), intent(out) :: c
+!Other
+real(kind=dp) :: r,theta,rdot,thetadot,phidot, sigma,delta
+real(kind=dp) :: E2, E, Enorm, Eprime2, Eprime,Eobs
+real(kind=dp) :: B2, fr,ft,omega2
+real(kind=dp) :: Lz, pr, ptheta, phi,kappa
+
+!Load the data
+r = ray(2)
+theta = ray(3)
+rdot = ray(5)
+thetadot = ray(6)
+phidot = ray(7)
+
+!Setup some defenitions
+sigma = r**2 +a**2*cos(theta)**2
+delta = r**2 -2.0_dp*r + a**2
+
+
+
+!Define the plasma frequency
+B2 =  N*4.0_dp*PI*electron_charge**2 / electron_mass
+call plasma_fr(r,fr)
+call plasma_ft(r,ft)
+omega2 = B2 * (fr+ft)/sigma
+
+!Construct the energy is the conserved energy?
+Eobs = 16.0_dp
+Enorm = (sigma-2.0_dp*r)*(rdot**2/delta + thetadot**2) + delta*(sin(theta)*phidot)**2
+Eprime2 = (Eobs**2)/Enorm
+Eprime = sqrt(Eprime2)
+
+!Correct to ensure correct Energies
+rdot = rdot * Eprime
+thetadot = thetadot*Eprime
+phidot = phidot*Eprime
+
+
+!E2 = (sigma-2.0_dp*r)*(rdot**2/delta + thetadot**2) + delta*(sin(theta)*phidot)**2
+!E = sqrt(E2)
+!If you want you can check that E = Eobs
+
+
+!Get the angular momentum
+Lz = (sigma*delta*phidot - 2.0_dp*a*r*Eobs)*sin(theta)**2 / (sigma-2.0_dp*r)
+
+
+!Get the momenta (non constant)
+pr = rdot * sigma/delta
+ptheta = sigma*thetadot
+
+!Normalise to E = 1
+pr = pr/Eobs
+ptheta = ptheta/Eobs
+Lz = Lz/Eobs
+B2 = B2 / Eobs**2
+
+!Define one last constant and export
+kappa = ptheta**2 + Lz**2/sin(theta)**2 + a**2*sin(theta)**2
+
+v(1) = r
+v(2) = theta
+v(3) = phi
+v(4) = 0.0_dp !t
+v(5) = pr
+v(6) = ptheta
+
+
+!Dont declare these globally as need to be careful when running in parallel
+c(1) = Lz
+c(2) = kappa
+c(3) = B2
+c(4) = 1.0d-6 !Initial stepsize for RT
+stop
+end subroutine GeneralInitialConditions
+
+
+
+
+
 
 end module RayTracing

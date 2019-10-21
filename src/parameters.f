@@ -39,8 +39,10 @@ real(kind=dp), parameter :: N = 0.0e7_dp !plasma density normalisation
 integer(kind=dp)  :: adaptive = 1 !turn on/off (1/0) adaptive stepsize.
 !Note if off, it is important to pay attention to stepsize. Not a paramter since changed between MPD and RT
 real(kind=dp), parameter :: hs = 1.0d-5 !Fixed timing resolution in seconds. only used if adaptive =0
-
-
+real(kind=dp), parameter :: RepRes = 1000.0_dp !The representative resolution. What fraction of the orbit do you want for target &
+!points? 1 = all of the orbit.
+integer(kind=dp), parameter :: RayTracingDirection = -1 !+1 = Forward, -1 = Backward
+real(kind=dp), parameter :: RObs = 1000.0_dp,ThetaObs = PI/2.0_dp, PhiObs = 0.0_dp
 
 !I/O options
 integer(kind=dp), parameter :: plot_MPD = 1 !turn on/off (1/0) numerical accuracy evaluation
