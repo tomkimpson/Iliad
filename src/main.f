@@ -18,6 +18,8 @@ print *, 'Calling MPD'
 call MPD()
 
 
+
+
 !Use the orbit as initial conditions for ray tracing. 
 print *, 'Calling RayTracing'
 call RT()
@@ -44,6 +46,7 @@ subroutine setup()
 use constants
 
 character(len = 20), parameter :: FMT1 = "(F10.2)"
+character(len = 20), parameter :: FMT3 = "(F10.3)"
 character(len = 80) :: BHMass, BHSpin, PSRMass, PSRSpin, PSRangle1, PSRangle2, PSRangle3, OrbitalPeriod, OrbitalEcc, &
                        OrbitalNumber, OrbitalIota
 call get_environment_variable("IliadDir", path)
@@ -66,10 +69,11 @@ write(PSRangle1, FMT1) stheta
 write(PSRangle2, FMT1) sphi
 write(PSRangle3, FMT1) chi
 
-write(OrbitalPeriod, FMT1) KeplerianPeriod
+write(OrbitalPeriod, FMT3) KeplerianPeriod
 write(OrbitalEcc, FMT1) eccentricity
 write(OrbitalNumber, FMT1) Norbit
 write(OrbitalIota, FMT1) iota
+
 
 print *, 'You have selected the following settings:'
 
@@ -101,8 +105,7 @@ else
 print *, 'Spin-curvature coupling is turned off'
 endif
 
-stop
-
+print *, '---- END INITIAL SETUP ----'
 end subroutine setup
 
 

@@ -86,9 +86,9 @@ counter = 0
 Narray = 0
 
 
-!do while (y(4) - xi(4) .LT. Norbit*2.0_dp*PI)
+do while (y(4) - xi(4) .LT. Norbit*2.0_dp*PI)
 
-do while (i .LT. 2)
+!do while (i .LT. 2)
 
 counter = counter + 1
 
@@ -121,11 +121,9 @@ close(10)
 
 !And save in a readable format for plotting
 if (plot_MPD .EQ. 1) then
-print *, 'saving'
+print *, 'Saving formatted MPD Data'
 call ToTextFile(MPDBinaryData)
 endif
-
-print *, 'TESTING. MPDOUT = ', Narray, i
 
 
 end subroutine MPD
