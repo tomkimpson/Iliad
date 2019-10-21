@@ -43,33 +43,57 @@ subroutine setup()
 
 use constants
 
+character(len = 20), parameter :: FMT1 = "(F10.2)"
+character(len = 80) :: BHMass, BHSpin, PSRMass, PSRSpin, PSRangle1, PSRangle2, PSRangle3, OrbitalPeriod, OrbitalEcc, &
+                       OrbitalNumber, OrbitalIota
 call get_environment_variable("IliadDir", path)
 MPDBinaryData = trim(adjustl(path))//'MPDBinaryData.dat'
 MPDFormatData = trim(adjustl(path))//'MPDFormatData.txt'
 RTPath = trim(adjustl(path))//'RT/'
 
-
 !Welcome messages
 
 print *, 'Iliad is running'
 
+!Write to string
+write(BHMass, FMT1) MBH/1.0e6_dp
+write(BHSpin, FMT1) a
+
+write(PSRMass, FMT1) MPSR
+write(PSRSpin, FMT1) p0*1.0e3_dp
+
+write(PSRangle1, FMT1) stheta
+write(PSRangle2, FMT1) sphi
+write(PSRangle3, FMT1) chi
+
+write(OrbitalPeriod, FMT1) KeplerianPeriod
+write(OrbitalEcc, FMT1) eccentricity
+write(OrbitalNumber, FMT1) Norbit
+write(OrbitalIota, FMT1) iota
+
 print *, 'You have selected the following settings:'
 
 print *, '-------------------------'
-print *, 'BH:'
 print *, '-------------------------'
-print *, 'BH mass =', MBH/1.0d6, ' BH spin = ', a
+print *, 'BH PARAMETERS:'
 print *, '-------------------------'
-print *, 'PSR:'
 print *, '-------------------------'
-print *, 'PSR mass =', MPSR, ' PSR spin period = ', p0
-print *, 'Stheta = ', stheta, 'Sphi = ', sphi
-print *, 'Chi angle = ', chi
+print *, 'BH mass =', trim(adjustl(BHMass)), ' x 10^6 solar masses. BH spin = ', trim(adjustl(BHSpin))
 print *, '-------------------------'
-print *, 'Orbit:'
 print *, '-------------------------'
-print *, 'Period = ', KeplerianPeriod, ' years. Eccentricity = ', e
-print *, 'Inclination = ', iota, ' Number of orbits = ', Norbit
+print *, 'PSR PARAMETERS:'
+print *, '-------------------------'
+print *, '-------------------------'
+print *, 'PSR mass =', trim(adjustl(PSRMass)), ' solar masses. PSR spin period = ', trim(adjustl(PSRSpin)), ' milliseconds'
+print *, 'Stheta = ', trim(adjustl(PSRangle1)), ' Sphi = ', trim(adjustl(PSRangle2)), 'Chi =', trim(adjustl(PSRangle3)) 
+print *, '-------------------------'
+print *, '-------------------------'
+print *, 'ORBITAL PARAMETERS:'
+print *, '-------------------------'
+print *, '-------------------------'
+print *, 'Period = ', trim(adjustl(OrbitalPeriod)), ' years. Eccentricity = ', trim(adjustl(OrbitalEcc))
+print *, 'Inclination = ', trim(adjustl(OrbitalIota)), ' Number of orbits = ', trim(adjustl(OrbitalNumber))
+
 
 if (lambda .EQ. 1) then
 print *, 'Spin-curvature coupling is turned on'
@@ -77,7 +101,7 @@ else
 print *, 'Spin-curvature coupling is turned off'
 endif
 
-
+stop
 
 end subroutine setup
 
