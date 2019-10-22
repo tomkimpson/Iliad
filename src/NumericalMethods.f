@@ -11,46 +11,37 @@ implicit none
 private adaptive_shrink, adaptive_grow
 
 public rk, rk_geodesic
-
-!  abstract interface
- !   subroutine sub_interface(y, c)
-  !  use parameters 
-   ! real(kind=dp), dimension(:) :: y,c !Input vector of general size. 
-   ! end subroutine
-!  end interface
-
 contains
 
 
-!subroutine rk_choose(sub,y,c)
- !   procedure(sub_interface) :: sub
-  !  real(kind=dp), dimension(:) :: y,c !Input vector of general size. 
-   ! call sub(y, c)
-!end subroutine rk_choose
-
-
-
-!subroutine mySubX(y,c)
-!real(kind=dp), dimension(:) :: y,c !Input vector of general size. 
-!print *, 'mysubx'
-!print *, y(1:3)
-!end subroutine mySubX
-
-
-subroutine rk_geodesic(y,c)
+subroutine rk_geodesic(y,c,b)
 !Arguments
 ! http://astroa.physics.metu.edu.tr/MANUALS/intel_ifc/mergedProjects/optaps_for/fortran/optaps_prg_arrs_f.htm
 real(kind=dp), dimension(:) :: y !Input vector of general size. 
 real(kind=dp), dimension(:) :: c !Some constants and stepsizes. 
+real(kind=dp), dimension(:) :: b ! Extras for backwards RT 
 !Other
 real(kind=dp), dimension(size(y)) :: y1,y2,y3,y4,y5,y6
 real(kind=dp), dimension(size(y)) :: dy1,dy2,dy3,dy4,dy5,dy6
 real(kind=dp), dimension(size(y)) :: k1,k2,k3,k4,k5,k6
 real(kind=dp), dimension(size(y)) :: ynew, yerr,deltaErr, yscal, ratio
-real(kind=dp) :: h, errmax
+real(kind=dp) :: h, errmax,xOUT, xT, rT,dx
+
+
+!Define some stuff from arrays
+xT = b(1) ! X coordinate of the target point
+rT = b(2) ! R coordinate. !Dont actually use this!
+
+
+
+
 
 !Set the stepsize
 h = c(4)
+
+
+11 continue
+
 
 ! Y1
 y1 = y
@@ -101,9 +92,40 @@ errmax = escal * maxval(ratio)
 
 
 
+
+
+
+if (RayTracingDirection .EQ. -1.0_dp) then
+
+    !Backwards RT
+        xOUT = sqrt(ynew(1)**2 + a**2)*sin(ynew(2))*cos(ynew(3))
+        dx = xOUT - xT
+
+
+        if (abs(dx) .LT. dx_eps) then
+        b(2) = 1.0_dp
+        !Leave this subroutine
+        return 
+        endif
+
+
+
+        if (dx .LT. 0.0_dp) then
+        h = h*0.50_dp
+        goto 11
+        endif
+
+
+endif
+
+
+
+
+
+
+
 if (errmax .GT. 1) then
 !The error is too big. Reduce the step size and exit without updating the variable vector
-
 call adaptive_shrink(errmax,h)
 else
 !The error is OK. Grow the stepsize a little and set the variables for the next integration step

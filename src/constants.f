@@ -62,7 +62,7 @@ real(kind = dp) :: cbar4=13525.0_dp/55296.0_dp, cbar5 = 277.0_dp/14336.0_dp, cba
 
 real(kind = dp) :: escal = 1.0d19 !SHOULD WE CHANGE THIS? SPEED VS ACCURACY....
 real(kind = dp) :: PSHRINK = -0.25_dp,PGROW=-0.20_dp, S=0.90_dp
-
+real(kind=dp), parameter :: dx_eps = 1.0e-22_dp !How small do we push this param?
 
 
 !Some globally defined MPD variables

@@ -11,7 +11,7 @@ implicit none
 
 public RT
 
-private initial_conditions, RT_Forward, RT_Backward, GeneralInitialConditions
+private initial_conditions, RT_Forward, RT_Backward, GeneralInitialConditions, shoot, aim
 
 contains
 
@@ -183,7 +183,7 @@ do while (stat .EQ. 0)
  !   do while (v(1) .GT. Rhor .and. v(1) .LT. rstart*10.0_dp)
   
  do while (counter .lt. 10)
- call rk_geodesic(v,c)
+! call rk_geodesic(v,c)
     
     print *, counter, v(1),v(2), c(4)
 
@@ -599,19 +599,20 @@ subroutine RT_Forward()
 end subroutine RT_Forward
 
 
+
+
+
+
+
+
+
 subroutine RT_Backward(xi)
 !Arguments
 real(kind=dp), dimension(4), intent(in) :: xi !position of MPD
 !Other
 real(kind=dp) :: xT, yT, zT, mm
 real(kind=dp) :: alpha,beta
-real(kind=dp) :: xprime, yprime, zprime
-real(kind=dp) :: w, r, theta,phi,t
-real(kind=dp) :: rdot, thetadot, phidot, zdot, sig,u,vv
-real(kind=dp), dimension(7) :: ray !Ray initial conditions
-real(kind=dp), dimension(6) :: v
-real(kind=dp), dimension(4) :: c
-
+real(kind=dp),dimension(6) :: IO
 
 !The target points 
 mm = sqrt(xi(2)**2 + a**2)
@@ -619,9 +620,61 @@ xT = mm * sin(xi(3))*cos(xi(4))
 yT = mm * sin(xi(3))*sin(xi(4))
 zT = mm * cos(xi(3))
 
+
+
 !Initial guess at the coordinates of the image plane
 alpha = yT
 beta = xT*cos(ThetaObs) + zT*sin(ThetaObs)
+
+!Shoot
+IO(1) = xT
+IO(2) = yT
+IO(3) = zT
+IO(4) = alpha
+IO(5) = beta
+
+call shoot(IO)
+print *, 'returm shoot'
+
+
+
+stop
+
+
+
+end subroutine RT_Backward
+
+
+subroutine aim
+
+end subroutine aim
+
+
+
+
+
+subroutine shoot(IO)
+!Arguments
+real(kind=dp),dimension(6),intent(inout) :: IO
+!Other
+real(kind=dp) :: xT, yT, zT, xP, yP, zP,mm
+real(kind=dp) :: alpha,beta
+real(kind=dp) :: xprime, yprime, zprime
+real(kind=dp) :: w, r, theta,phi,t
+real(kind=dp) :: rdot, thetadot, phidot, zdot, sig,u,vv
+real(kind=dp), dimension(7) :: ray !Ray initial conditions
+real(kind=dp), dimension(6) :: v !The variables e.g. r, theta phi etc
+real(kind=dp), dimension(4) :: c !The constants L. kappa etc
+real(kind=dp), dimension(2) :: b !the BackArray - contains stuff which relates to intersections and backwards ray tracing
+integer(kind=dp) :: counter
+real(kind=dp) :: Rstart, xOUT,dx, ds2
+
+xT = IO(1)
+yT = IO(2)
+zT = IO(3)
+alpha = IO(4)
+beta = IO(5)
+
 
 
 !Convert to the primed Cartesian frame
@@ -657,10 +710,42 @@ ray(5) = rdot
 ray(6) = thetadot
 ray(7) = phidot
 
-
+!Set up initial conditions
 call GeneralInitialConditions(ray,v,c)
+Rstart = v(1)
+counter = 1
 
-end subroutine RT_Backward
+b(1) = xT
+
+
+
+!Iterate
+do while (v(1) .GT. Rhor .and. v(1) .LT. rstart*10.0_dp)
+!Do a timestep
+call rk_geodesic(v,c,b)
+
+
+
+!Check to see if condition is satisfied
+if (b(2) .EQ. 1.0_dp) then
+
+!Calculate ds2
+mm = sqrt(v(1)**2 + a**2)
+xP = mm*sin(v(2))*cos(v(3))
+yP = mm*sin(v(2))*sin(v(3))
+zP = v(1)*cos(v(2))
+
+
+
+ds2 = (xP - xT)**2 + (yP - yT)**2 + (zP-zT)**2
+IO(6) = ds2
+return
+endif
+
+enddo
+
+
+end subroutine shoot
 
 
 
@@ -708,9 +793,9 @@ thetadot = thetadot*Eprime
 phidot = phidot*Eprime
 
 
+!If you want you can check that E = Eobs
 !E2 = (sigma-2.0_dp*r)*(rdot**2/delta + thetadot**2) + delta*(sin(theta)*phidot)**2
 !E = sqrt(E2)
-!If you want you can check that E = Eobs
 
 
 !Get the angular momentum
@@ -743,7 +828,6 @@ c(1) = Lz
 c(2) = kappa
 c(3) = B2
 c(4) = 1.0d-6 !Initial stepsize for RT
-stop
 end subroutine GeneralInitialConditions
 
 
