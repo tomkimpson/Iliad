@@ -103,7 +103,11 @@ if (RayTracingDirection .EQ. -1.0_dp) then
 
 
         if (abs(dx) .LT. dx_eps) then
+
+ !       print *, 'Good!', dx, xT
+
         b(2) = 1.0_dp
+        y = ynew
         !Leave this subroutine
         return 
         endif

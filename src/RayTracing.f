@@ -613,6 +613,8 @@ real(kind=dp), dimension(4), intent(in) :: xi !position of MPD
 real(kind=dp) :: xT, yT, zT, mm
 real(kind=dp) :: alpha,beta
 real(kind=dp),dimension(6) :: IO
+real(kind=dp),dimension(4) :: globals
+real(kind=dp),dimension(3) :: OT
 
 !The target points 
 mm = sqrt(xi(2)**2 + a**2)
@@ -620,11 +622,17 @@ xT = mm * sin(xi(3))*cos(xi(4))
 yT = mm * sin(xi(3))*sin(xi(4))
 zT = mm * cos(xi(3))
 
+xT = 100.0_dp
+yT = 100.0_dp
+zT = 100.0_dp
+
+
 
 
 !Initial guess at the coordinates of the image plane
 alpha = yT
 beta = xT*cos(ThetaObs) + zT*sin(ThetaObs)
+globals = 0.0_dp
 
 !Shoot
 IO(1) = xT
@@ -633,10 +641,33 @@ IO(3) = zT
 IO(4) = alpha
 IO(5) = beta
 
+
+print *, 'FIRST SHOOT'
 call shoot(IO)
-print *, 'returm shoot'
 
 
+
+print *, 'AIM'
+OT(1) = 0.250_dp !etaRT
+OT(2) = 0.050_dp !etaLOW
+OT(3) = 0.0_dp !Fail Counts
+
+
+
+!OT(1) = 5.0e-9_dp
+
+do while (IO(6) .GT. 1.0d-6)
+
+
+
+call aim(IO,globals,OT)
+
+
+enddo
+
+
+
+print *, 'here'
 
 stop
 
@@ -645,10 +676,161 @@ stop
 end subroutine RT_Backward
 
 
-subroutine aim
+subroutine aim(IO,globals,OT)
+!Arguments
+real(kind=dp),dimension(6),intent(inout) :: IO
+real(kind=dp),dimension(4),intent(inout) :: globals
+real(kind=dp),dimension(:),intent(inout) :: OT !i.e. other
+!Other
+real(kind=dp),parameter :: gbit = 1.0e-16_dp
+real(kind=dp) :: dsA, dsB, gA, gB, dsORIG, zeta,hA, hB
+real(kind=dp) :: etaRT, factor, alpha0, beta0,dsBEST,aBEST,bBEST
+
+!Load original ds
+alpha0 = IO(4)
+beta0 = IO(5)
+dsORIG = IO(6)
+
+
+
+
+
+!Alpha
+IO(4) = IO(4) + gbit
+
+!print *, 'Gradient A'
+call shoot(IO)
+dsA = IO(6)
+gA = (dsA - dsORIG)/gbit
+gA = - gA !Why
+!print *, 'GA OUT:', dsA, dsORIG,gA
+
+
+
+
+
+!Beta
+IO(4) = IO(4) - gbit
+IO(5) = IO(5) + gbit
+!print *, 'Gradient B'
+
+call shoot(IO)
+dsB = IO(6)
+gB = (dsB - dsORIG)/gbit
+gB = -gB !why?
+!print *, 'GB OUT:', dsB, dsORIG, gB
+
+
+!Now get the alpha/beta adjustment direction
+
+if (globals(1) .EQ. 0.0_dp) then
+!It is the first time, just set zeta = 0
+zeta = 0.0_dp
+else
+zeta = (gA*gA +gB*gB)/(globals(1)**2 + globals(2)**2)
+endif
+
+
+hA = gA +zeta*globals(3) 
+hB = gB +zeta*globals(4)
+
+
+!Got the direction. Now perform a line search
+
+!set inital optimization params
+etaRT = OT(1)
+factor = 2.0_dp
+
+!loop line search
+
+dsBEST = 1d20
+aBEST = alpha0
+bBEST = beta0
+
+01 do
+
+        etaRT =etaRT * factor
+        IO(4) = aBEST + etaRT*hA
+        IO(5) = bBEST + etaRT*hB
+
+
+        call shoot(IO)
+
+
+
+
+        if (IO(6) .LT. dsBEST) then
+        aBEST = IO(4)
+        bBEST = IO(5)
+        dsBEST = IO(6)
+
+        else
+                EXIT !Exit do loop
+        endif
+
+
+
+
+
+
+enddo
+
+
+
+
+
+if (dsBEST .LT. dsORIG) then
+!Good. Update
+
+
+!Update search attempts        
+IO(4) = aBEST
+IO(5) = bBEST
+IO(6) = dsBEST
+
+
+!Update globals
+globals(1) = gA
+globals(2) = gB
+globals(3) = hA
+globals(4) = hB
+
+
+!Update stepsize
+OT(1) = etaRT/5.0_dp
+
+
+
+else
+
+!Dont update
+IO(4) = alpha0
+IO(5) = beta0
+IO(6) = dsORIG
+
+!Set search parameters
+OT(1) = OT(2) !etaRT = etaLOW
+OT(3) = OT(3) + 1 !Track the number of fails
+
+endif
+
+
+
+if (OT(3) .GT. 20) then
+!Repeatedly fails to lower
+!Change search parameters and reset globals
+OT(1) = 5.0e-9_dp
+OT(2) = OT(1)
+OT(3) = 0.0_dp
+globals = 0.0_dp
+endif
+
+
+
+print *, 'OUT:', IO(6), OT(1), OT(3)
+
 
 end subroutine aim
-
 
 
 
@@ -669,12 +851,12 @@ real(kind=dp), dimension(2) :: b !the BackArray - contains stuff which relates t
 integer(kind=dp) :: counter
 real(kind=dp) :: Rstart, xOUT,dx, ds2
 
+
 xT = IO(1)
 yT = IO(2)
 zT = IO(3)
 alpha = IO(4)
 beta = IO(5)
-
 
 
 !Convert to the primed Cartesian frame
@@ -716,7 +898,7 @@ Rstart = v(1)
 counter = 1
 
 b(1) = xT
-
+b(2) = 0.0_dp
 
 
 !Iterate
