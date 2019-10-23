@@ -659,9 +659,7 @@ OT(3) = 0.0_dp !Fail Counts
 do while (IO(6) .GT. 1.0d-6)
 
 
-
 call aim(IO,globals,OT)
-
 
 enddo
 
@@ -685,6 +683,16 @@ real(kind=dp),dimension(:),intent(inout) :: OT !i.e. other
 real(kind=dp),parameter :: gbit = 1.0e-16_dp
 real(kind=dp) :: dsA, dsB, gA, gB, dsORIG, zeta,hA, hB
 real(kind=dp) :: etaRT, factor, alpha0, beta0,dsBEST,aBEST,bBEST
+real(kind=dp) :: tau, c,t, pA, pB,norm,m, dstemp !Armijo
+
+
+
+print *, 'IN:', IO(6)
+
+
+tau = 0.10_dp
+c = 0.50_dp
+
 
 !Load original ds
 alpha0 = IO(4)
@@ -747,27 +755,65 @@ dsBEST = 1d20
 aBEST = alpha0
 bBEST = beta0
 
-01 do
-
-        etaRT =etaRT * factor
-        IO(4) = aBEST + etaRT*hA
-        IO(5) = bBEST + etaRT*hB
 
 
+
+
+
+!Testing backtrack line search
+
+norm = sqrt(hA**2 + hB**2)
+pA = hA/norm
+pB = hB/norm
+
+m = gA*pA + gB*pB !Is this the correct defenition?
+t = -c*m
+
+etaRT = 1.0_dp
+dstemp = IO(6)
+02 do
+
+
+
+!HERE IS THE ERROR
+        IO(4) = IO(4) + etaRT*hA
+        IO(5) = IO(5) + etaRT*hB
         call shoot(IO)
 
+        print *, IO(4:6), dstemp, etaRT
+
+!      if ((IO(6) - dstemp) .LT. etaRT*t) then
+        
+        if (IO(6) .LT. dstemp) then
+
+
+        !Found something good. EXIT
 
 
 
-        if (IO(6) .LT. dsBEST) then
-        aBEST = IO(4)
-        bBEST = IO(5)
-        dsBEST = IO(6)
+!Update globals
+globals(1) = gA
+globals(2) = gB
+globals(3) = hA
+globals(4) = hB
+
+
+
+print *, 'OUT:', IO(6)
+
+
+        return
+
+
 
         else
-                EXIT !Exit do loop
-        endif
 
+
+        etaRT = etaRT*tau
+
+
+
+        endif
 
 
 
@@ -779,55 +825,93 @@ enddo
 
 
 
-if (dsBEST .LT. dsORIG) then
-!Good. Update
 
-
-!Update search attempts        
-IO(4) = aBEST
-IO(5) = bBEST
-IO(6) = dsBEST
-
-
-!Update globals
-globals(1) = gA
-globals(2) = gB
-globals(3) = hA
-globals(4) = hB
-
-
-!Update stepsize
-OT(1) = etaRT/5.0_dp
+stop
 
 
 
-else
 
-!Dont update
-IO(4) = alpha0
-IO(5) = beta0
-IO(6) = dsORIG
+!01 do
+!
+!        etaRT =etaRT * factor
+!        IO(4) = aBEST + etaRT*hA
+!        IO(5) = bBEST + etaRT*hB
+!
+!
+!        call shoot(IO)
+!
+!
+!
+!
+!        if (IO(6) .LT. dsBEST) then
+!        aBEST = IO(4)
+!        bBEST = IO(5)
+!        dsBEST = IO(6)
+!
+!        else
+!                EXIT !Exit do loop
+!        endif
+!
+!
+!
+!
+!
+!
+!enddo
+!
+!
+!
+!
+!
+!if (dsBEST .LT. dsORIG) then
+!!Good. Update
+!
+!
+!!Update search attempts        
+!IO(4) = aBEST
+!IO(5) = bBEST
+!IO(6) = dsBEST
+!
+!
+!!Update globals
+!globals(1) = gA
+!globals(2) = gB
+!globals(3) = hA
+!globals(4) = hB
+!
+!
+!!Update stepsize
+!OT(1) = etaRT/5.0_dp
+!
+!
+!
+!else
+!
+!!Dont update
+!IO(4) = alpha0
+!IO(5) = beta0
+!IO(6) = dsORIG
+!
+!!Set search parameters
+!OT(1) = OT(2) !etaRT = etaLOW
+!OT(3) = OT(3) + 1 !Track the number of fails
+!
+!endif
+!
+!
+!
+!if (OT(3) .GT. 20) then
+!!Repeatedly fails to lower
+!!Change search parameters and reset globals
+!OT(1) = 5.0e-9_dp
+!OT(2) = OT(1)
+!OT(3) = 0.0_dp
+!globals = 0.0_dp
+!endif
+!
+!
 
-!Set search parameters
-OT(1) = OT(2) !etaRT = etaLOW
-OT(3) = OT(3) + 1 !Track the number of fails
-
-endif
-
-
-
-if (OT(3) .GT. 20) then
-!Repeatedly fails to lower
-!Change search parameters and reset globals
-OT(1) = 5.0e-9_dp
-OT(2) = OT(1)
-OT(3) = 0.0_dp
-globals = 0.0_dp
-endif
-
-
-
-print *, 'OUT:', IO(6), OT(1), OT(3)
+!print *, 'OUT:', IO(6), OT(1), OT(3)
 
 
 end subroutine aim
