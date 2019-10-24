@@ -9,7 +9,7 @@ implicit none
 
 private
 
-public FileOpen, ToTextFile
+public FileOpen, ToTextFile, create_RT_plotfile
 
 contains
 
@@ -89,6 +89,24 @@ endif
 end subroutine FileOpen
 
 
+subroutine create_RT_plotfile(alpha,beta,RTfile)
+!Arguments
+real(kind=dp),intent(in) :: alpha,beta
+character(len=300), intent(out) :: RTFile
+!Other
+character(len=300) :: aSTR, bSTR
+character(len = 20), parameter :: FMT1 = "(F10.2)"
 
+
+write(aSTR, FMT1) alpha
+write(bSTR, FMT1) beta
+
+
+RTFile = trim(adjustl(RTPath))//'RTFile_alpha='//trim(adjustl(aSTR))//'_beta='//trim(adjustl(bSTR))//'.txt'
+RTFile = trim(adjustl(RTFile))
+
+
+
+end subroutine create_RT_plotfile
 
 end module IO
