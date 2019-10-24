@@ -636,7 +636,7 @@ xt = -1000.0_dp
 alpha = yT
 beta = xT*cos(ThetaObs) + zT*sin(ThetaObs)
 
-alpha = -7.0_dp
+alpha = 3.0_dp
 beta = 0.0_dp
 
 

@@ -33,17 +33,8 @@ xT = b(1) ! X coordinate of the target point
 rT = b(2) ! R coordinate. !Dont actually use this!
 
 
-
-
-
-
-
 !Set the stepsize
 h = c(4)
-
-!print *, 'IN1:', y(1:3)
-!print *, 'IN2', y(4:6)
-
 
 11 continue
 
@@ -51,28 +42,13 @@ h = c(4)
 ! Y1
 y1 = y
 call geodesic(y1,c,dy1)
-!print *, 'dy1:', dy1(1:3)
-!print *, 'dy1:', dy1(4:6)
-!stop
-
-
-
 k1 = h * dy1
 
 
 
 !Y2
 y2 = y1 + B21*k1
-
-!PRINT *, 'C1:', y2(1), y1(1), B21*k1(1)
-!stop
-
-
-
-!print *, 'DY2 IN:', y2(1:2), y2(5)
 call geodesic(y2,c,dy2)
-!print *, 'dy2:', dy2(1)
-
 k2 = h * dy2
 
 
@@ -80,7 +56,6 @@ k2 = h * dy2
 !Y3
 y3 = y1 + B31*k1 + B32*k2
 call geodesic(y3,c,dy3)
-!print *, 'dy3:', dy3(1)
 k3 = h * dy3
 
 
@@ -108,37 +83,7 @@ k6 = h * dy6
 ynew = y1 + c1*k1  + c3*k3 + c4*k4  +c6*k6 
 yerr = y1 + cbar1*k1 + cbar3*k3 + cbar4*k4 + cbar5*k5 + cbar6*k6
 
-
-
-
-!print *, ynew(1), y1(1) , c1*k1(1)  , c3*k3(1) + c4*k4(1)  +c6*k6(1) 
-!print *, yerr(1), y1(1) , cbar1*k1(1) , cbar3*k3(1) + cbar4*k4(1) + cbar5*k5(1) + cbar6*k6(1)
-
-
-!print *, (c1-cbar1)*k1(1) 
-!print *, (c3-cbar3)*k3(1) 
-
-
-!stop
-
-
-
-!print *, (c4-cbar4)*k4(1) 
-!print *, (-cbar5)*k5(1) 
-!Print *, (c6-cbar6)*k6(1)
-
-!stop
-
-
-
-
 deltaErr = abs(ynew - yerr)
-
-
-
-!print *, 'yerr 1:', ynew(1), deltaErr(1)
-!stop
-
 
 
 
@@ -148,10 +93,6 @@ ratio = deltaErr/yscal
 errmax = escal * maxval(ratio)
 
 
-!print *, 'ratios:', ratio(1:3)*escal
-!print *, 'ratios:', ratio(4:6)*escal
-!print *, errmax
-!stop
 
 
 
