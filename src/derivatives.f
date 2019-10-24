@@ -35,7 +35,7 @@ ptheta= v(6)
 !Get the constants
 Lz = constants(1)
 kappa = constants(2)
-B2 = constants(4)
+B2 = constants(3)
 
 !Define some useful quantities
 
@@ -69,6 +69,10 @@ dv(5) = ( &
         -2.0_dp*a*Lz &
         )/SD &
         - 2.0_dp*pr**2*(r-1.0_dp)/sigma + plasma_correction_pr
+
+
+
+
 
 dv(6) = sin(theta)*cos(theta)*(Lz**2 * csc**4 -a**2) / sigma + plasma_correction_pt
 

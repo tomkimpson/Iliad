@@ -126,6 +126,7 @@ call ToTextFile(MPDBinaryData)
 endif
 
 
+deallocate(MPDData)
 end subroutine MPD
 
 

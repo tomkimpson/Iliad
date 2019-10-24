@@ -11,7 +11,7 @@ integer, parameter :: dp = selected_real_kind(33,4931)
 real(kind=dp), parameter :: PI = 4.D0*ATAN(1.D0) 
 !BH parameters
 real(kind=dp), parameter :: MBH = 4.310d6 !BH mass in solar  !BH mass
-real(kind=dp), parameter :: a = 0.60_dp !BH spin parameter
+real(kind=dp), parameter :: a = 0.9980_dp !BH spin parameter
 
 
 !PSR parameters

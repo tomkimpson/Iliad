@@ -11,7 +11,7 @@ import os
 path = os.environ['RayTracingDir']
 
 
-d = 3
+d = 2
 
 
 #Set up plotting environment

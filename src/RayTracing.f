@@ -622,9 +622,12 @@ xT = mm * sin(xi(3))*cos(xi(4))
 yT = mm * sin(xi(3))*sin(xi(4))
 zT = mm * cos(xi(3))
 
-xT = 100.0_dp
-yT = 100.0_dp
-zT = 100.0_dp
+xt = -1000.0_dp
+
+
+!xT = 108.0_dp
+!yT = 101.0_dp
+!zT = 95.0_dp
 
 
 
@@ -632,6 +635,11 @@ zT = 100.0_dp
 !Initial guess at the coordinates of the image plane
 alpha = yT
 beta = xT*cos(ThetaObs) + zT*sin(ThetaObs)
+
+alpha = -7.0_dp
+beta = 0.0_dp
+
+
 globals = 0.0_dp
 
 !Shoot
@@ -639,22 +647,32 @@ IO(1) = xT
 IO(2) = yT
 IO(3) = zT
 IO(4) = alpha
-IO(5) = beta
+IO(5) = beta 
 
 
 print *, 'FIRST SHOOT'
 call shoot(IO)
+mm = IO(6)
 
+stop
+
+
+IO(5) = beta + 1.0e-16_dp
+print *, 'FIRST SHOOT'
+call shoot(IO)
+
+print *, (IO(6) - mm ) / 1.0e-16_dp
+
+stop
 
 
 print *, 'AIM'
-OT(1) = 0.250_dp !etaRT
-OT(2) = 0.050_dp !etaLOW
-OT(3) = 0.0_dp !Fail Counts
+OT(1) = 1.0_dp !0.250_dp !etaRT
+OT(2) = 0.050_dp !etaLOW !might not need these
+OT(3) = 0.0_dp !Fail Counts !Nor these
 
 
 
-!OT(1) = 5.0e-9_dp
 
 do while (IO(6) .GT. 1.0d-6)
 
@@ -663,6 +681,8 @@ call aim(IO,globals,OT)
 
 enddo
 
+
+!Trace the ray - useful for data+plotting. Or just write to file for use later
 
 
 print *, 'here'
@@ -680,18 +700,17 @@ real(kind=dp),dimension(6),intent(inout) :: IO
 real(kind=dp),dimension(4),intent(inout) :: globals
 real(kind=dp),dimension(:),intent(inout) :: OT !i.e. other
 !Other
-real(kind=dp),parameter :: gbit = 1.0e-16_dp
+real(kind=dp),parameter :: gbit = 1.0e-18_dp
 real(kind=dp) :: dsA, dsB, gA, gB, dsORIG, zeta,hA, hB
 real(kind=dp) :: etaRT, factor, alpha0, beta0,dsBEST,aBEST,bBEST
 real(kind=dp) :: tau, c,t, pA, pB,norm,m, dstemp !Armijo
 
 
 
-print *, 'IN:', IO(6)
 
 
 tau = 0.10_dp
-c = 0.50_dp
+c = 0.0010_dp
 
 
 !Load original ds
@@ -706,7 +725,6 @@ dsORIG = IO(6)
 !Alpha
 IO(4) = IO(4) + gbit
 
-!print *, 'Gradient A'
 call shoot(IO)
 dsA = IO(6)
 gA = (dsA - dsORIG)/gbit
@@ -716,17 +734,29 @@ gA = - gA !Why
 
 
 
-
 !Beta
+print *, 'Gradient B'
 IO(4) = IO(4) - gbit
 IO(5) = IO(5) + gbit
-!print *, 'Gradient B'
-
 call shoot(IO)
 dsB = IO(6)
 gB = (dsB - dsORIG)/gbit
 gB = -gB !why?
 !print *, 'GB OUT:', dsB, dsORIG, gB
+
+stop
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 !Now get the alpha/beta adjustment direction
@@ -769,20 +799,21 @@ pB = hB/norm
 m = gA*pA + gB*pB !Is this the correct defenition?
 t = -c*m
 
-etaRT = 1.0_dp
+etaRT = OT(1)
 dstemp = IO(6)
 02 do
 
 
 
-!HERE IS THE ERROR
-        IO(4) = IO(4) + etaRT*hA
-        IO(5) = IO(5) + etaRT*hB
+        IO(4) = alpha0 + etaRT*hA
+        IO(5) = beta0 + etaRT*hB
+ 
+
         call shoot(IO)
 
-        print *, IO(4:6), dstemp, etaRT
+        print *, 'i:', IO(6),dstemp, etaRT
 
-!      if ((IO(6) - dstemp) .LT. etaRT*t) then
+       ! if ((IO(6) - dstemp) .LT. etaRT*t) then
         
         if (IO(6) .LT. dstemp) then
 
@@ -799,9 +830,18 @@ globals(4) = hB
 
 
 
-print *, 'OUT:', IO(6)
+if (etaRT .LT. 1e-10_dp) then
+!etaRT is very small.
+!Reset to normal
+OT(1) =1.0_Dp
+else
+OT(1) = etaRT  !etaRT alwas decas Is this good?
+endif
 
 
+
+
+print *, '------'
         return
 
 
@@ -811,7 +851,15 @@ print *, 'OUT:', IO(6)
 
         etaRT = etaRT*tau
 
-
+        if (etaRT .LT. 1e-10_dp) then
+        !Reset
+        IO(6) = dsORIG
+        IO(5) = beta0
+        IO(4) = alpha0
+        globals = 0.0_dp
+        OT(1) = 1.0_dp
+        return
+        endif
 
         endif
 
@@ -932,9 +980,25 @@ real(kind=dp), dimension(7) :: ray !Ray initial conditions
 real(kind=dp), dimension(6) :: v !The variables e.g. r, theta phi etc
 real(kind=dp), dimension(4) :: c !The constants L. kappa etc
 real(kind=dp), dimension(2) :: b !the BackArray - contains stuff which relates to intersections and backwards ray tracing
-integer(kind=dp) :: counter
+integer(kind=dp) :: counter,i
 real(kind=dp) :: Rstart, xOUT,dx, ds2
+integer(kind=dp), parameter :: nrows = 1e8,ncols = 3
+real(kind=dp), dimension(:,:), allocatable :: PlotArray
+character(len=300) :: aSTR, bSTR ,RTFile
 
+print *, 'enter shot'
+allocate(PlotArray(nrows,ncols))
+
+!IF PLOT = 1
+
+write(aSTR, *) IO(4)
+write(bSTR, *) IO(5)
+
+RTFile = trim(adjustl(RTPath))//'FileAB_'//trim(adjustl(aSTR))//'_'//trim(adjustl(bSTR))//'.txt'
+RTFile = trim(adjustl(RTFile))
+
+
+print *, 'Start Shoot:', IO(4:5)
 
 xT = IO(1)
 yT = IO(2)
@@ -943,10 +1007,16 @@ alpha = IO(4)
 beta = IO(5)
 
 
+
+
+
 !Convert to the primed Cartesian frame
 xprime = sqrt(Robs**2.0_dp +a**2.0_dp) * sin(ThetaObs) - beta*cos(ThetaObs)
 yprime = alpha
 zprime = Robs*cos(ThetaObs) + beta*sin(ThetaObs)
+
+
+
 
 !Convert it to Boyer Lindquist
 w = xprime**2.0_dp +yprime**2.0_dp +zprime **2.0_dp - a**2.0_dp
@@ -956,6 +1026,12 @@ phi = atan2(yprime,xprime)
 t=0.0_dp
 
 
+
+
+
+
+print *, 'IC:', r,theta,phi
+
 !And then get the derivatives
 sig = r**2.0_dp +(a*cos(theta))**2.0_dp
 u = sqrt(r**2.0_dp+a**2.0_dp)
@@ -963,9 +1039,15 @@ vv= -sin(ThetaObs)*cos(phi)
 zdot = -1.0_dp
 
 
+
+
+
+
 rdot = -zdot*(-u**2.0*cos(ThetaObs)*cos(theta)+r*u*vv*sin(theta))/sig
 thetadot = -zdot*(cos(ThetaObs)*r*sin(theta)+u*vv*cos(theta))/sig	
 phidot = -zdot*sin(ThetaObs)*sin(phi)/(u*sin(theta))
+
+
 
 !Write to array
 ray(1) = t
@@ -985,11 +1067,27 @@ b(1) = xT
 b(2) = 0.0_dp
 
 
+
+
+
+print *, 'Start of RK:', v(1:3)
+
+
+
 !Iterate
 do while (v(1) .GT. Rhor .and. v(1) .LT. rstart*10.0_dp)
 !Do a timestep
-call rk_geodesic(v,c,b)
 
+
+!print *, 'RKStep'
+call rk_geodesic(v,c,b)
+!stop
+
+
+!IF PLOT = 1
+PlotArray(counter,1:3) = v(1:3) 
+
+counter = counter + 1
 
 
 !Check to see if condition is satisfied
@@ -1001,15 +1099,43 @@ xP = mm*sin(v(2))*cos(v(3))
 yP = mm*sin(v(2))*sin(v(3))
 zP = v(1)*cos(v(2))
 
-
+print *, 'END shoot:', xP,yP, zP
 
 ds2 = (xP - xT)**2 + (yP - yT)**2 + (zP-zT)**2
 IO(6) = ds2
+
+
+
+!Save the plot array
+
+open(unit =10, file = RTFile,form='formatted')
+do i=1,counter-1
+mm = sqrt(PlotArray(i,1)**2 + a**2)
+xP = mm*sin(PlotArray(i,2))*cos(PlotArray(i,3))
+yP = mm*sin(PlotArray(i,2))*sin(PlotArray(i,3))
+zP = PlotArray(i,1)*cos(PlotArray(i,2))
+write(10,*) xP , yP, zP
+enddo
+close(10)
+print *, 'saved'
+deallocate(PlotArray)
+
 return
 endif
 
 enddo
 
+open(unit =10, file = RTFile,form='formatted')
+do i=1,counter-1
+mm = sqrt(PlotArray(i,1)**2 + a**2)
+xP = mm*sin(PlotArray(i,2))*cos(PlotArray(i,3))
+yP = mm*sin(PlotArray(i,2))*sin(PlotArray(i,3))
+zP = PlotArray(i,1)*cos(PlotArray(i,2))
+write(10,*) xP , yP, zP
+enddo
+close(10)
+print *, 'saved'
+deallocate(PlotArray)
 
 end subroutine shoot
 
@@ -1026,11 +1152,12 @@ real(kind=dp), dimension(4), intent(out) :: c
 real(kind=dp) :: r,theta,rdot,thetadot,phidot, sigma,delta
 real(kind=dp) :: E2, E, Enorm, Eprime2, Eprime,Eobs
 real(kind=dp) :: B2, fr,ft,omega2
-real(kind=dp) :: Lz, pr, ptheta, phi,kappa
+real(kind=dp) :: Lz, pr, ptheta, phi,kappa, En, s1
 
 !Load the data
 r = ray(2)
 theta = ray(3)
+phi = ray(4)
 rdot = ray(5)
 thetadot = ray(6)
 phidot = ray(7)
@@ -1048,15 +1175,15 @@ call plasma_ft(r,ft)
 omega2 = B2 * (fr+ft)/sigma
 
 !Construct the energy is the conserved energy?
-Eobs = 16.0_dp
-Enorm = (sigma-2.0_dp*r)*(rdot**2/delta + thetadot**2) + delta*(sin(theta)*phidot)**2
-Eprime2 = (Eobs**2)/Enorm
-Eprime = sqrt(Eprime2)
+!Eobs = 16.0_dp
+!Enorm = (sigma-2.0_dp*r)*(rdot**2/delta + thetadot**2) + delta*(sin(theta)*phidot)**2
+!Eprime2 = (Eobs**2)/Enorm
+!Eprime = sqrt(Eprime2)
 
 !Correct to ensure correct Energies
-rdot = rdot * Eprime
-thetadot = thetadot*Eprime
-phidot = phidot*Eprime
+!rdot = rdot * Eprime
+!thetadot = thetadot*Eprime
+!phidot = phidot*Eprime
 
 
 !If you want you can check that E = Eobs
@@ -1064,8 +1191,18 @@ phidot = phidot*Eprime
 !E = sqrt(E2)
 
 
+! Compute the energy
+s1 = sigma-2.0*r
+E2 = s1*(rdot**2.0/delta +thetadot**2.0 +omega2/sigma) + delta*sin(theta)**2.0*phidot**2.0
+En  = sqrt(E2)
+
+
+
+
+
+
 !Get the angular momentum
-Lz = (sigma*delta*phidot - 2.0_dp*a*r*Eobs)*sin(theta)**2 / (sigma-2.0_dp*r)
+Lz = (sigma*delta*phidot - 2.0_dp*a*r*En)*sin(theta)**2 / (s1)
 
 
 !Get the momenta (non constant)
@@ -1073,10 +1210,13 @@ pr = rdot * sigma/delta
 ptheta = sigma*thetadot
 
 !Normalise to E = 1
-pr = pr/Eobs
-ptheta = ptheta/Eobs
-Lz = Lz/Eobs
-B2 = B2 / Eobs**2
+pr = pr/En
+ptheta = ptheta/En
+Lz = Lz/En
+B2 = B2 / E2
+
+
+
 
 !Define one last constant and export
 kappa = ptheta**2 + Lz**2/sin(theta)**2 + a**2*sin(theta)**2
@@ -1093,7 +1233,16 @@ v(6) = ptheta
 c(1) = Lz
 c(2) = kappa
 c(3) = B2
-c(4) = 1.0d-6 !Initial stepsize for RT
+c(4) = 1.0d-3 !Initial stepsize for RT
+
+
+!print *, 'Iliad IC:'
+!print *, v(1:3)
+!print *, v(4:6)
+!print *, c, En
+
+
+
 end subroutine GeneralInitialConditions
 
 
