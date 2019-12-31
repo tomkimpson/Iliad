@@ -1,6 +1,6 @@
 # Iliad - General Relativistic Pulsar Timing in Kerr Spacetime
 
-This code can be used to model the time-frequency signal from a pulsar orbiting a massive black hole (BH), accounting for all relativistic and astrophysical effects. Some work using these methods has been published in [Kimpson 2019a](https://ui.adsabs.harvard.edu/abs/2019MNRAS.484.2411K/abstract),[b](https://ui.adsabs.harvard.edu/abs/2019MNRAS.486..360K/abstract). 
+Welcome to Iliad! This code can be used to model the time-frequency signal from a pulsar orbiting a massive black hole (BH), accounting for all relativistic and astrophysical effects. Some work using these methods has been published in [Kimpson 2019a](https://ui.adsabs.harvard.edu/abs/2019MNRAS.484.2411K/abstract),[b](https://ui.adsabs.harvard.edu/abs/2019MNRAS.486..360K/abstract). 
 
 **The public release of this code via this repo is still in development.** Whilst the bare-bones base code is available for constructing the signal, modules relating to the signal analysis and computational optimization are still due to be released, once they have been cleaned up!
 
