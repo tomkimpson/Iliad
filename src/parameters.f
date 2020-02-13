@@ -18,16 +18,16 @@ real(kind=dp), parameter :: a = 0.9980_dp !BH spin parameter
 
 real(kind=dp), parameter :: MPSR = 1.40_dp !PSR mass is solar masses
 real(kind=dp), parameter :: RPSR = 10.0_dp !PSR radius in km
-real(kind=dp), parameter :: stheta = 0.0_dp, sphi = 0.0_dp !Initial angle of spin axis
+real(kind=dp), parameter :: stheta = PI/4.0_dp, sphi = PI/4.0_dp !Initial angle of spin axis
 real(kind=dp), parameter :: p0 = 1.0d-3 !pulsar spin period in seconds
 real(kind=dp), parameter :: chi = PI/2.0_dp !Polar angle between spin and radiation axis
 
 !Orbital parameters
-real(kind=dp), parameter :: KeplerianPeriod = 0.0010_dp !years
-real(kind=dp), parameter :: eccentricity = 0.10_dp
-real(kind=dp), parameter :: iota = 40.0_dp !Inclination w.r.t equatorial plane in degrees 0.60_dp
-real(kind=dp), parameter :: lambda = 0.0_dp !Turn on/off spin curvature coupling
-real(kind=dp), parameter :: Norbit = 10.0_dp !Number of orbits
+real(kind=dp), parameter :: KeplerianPeriod = 0.00070_dp !years
+real(kind=dp), parameter :: eccentricity = 0.80_dp
+real(kind=dp), parameter :: iota = 30.0_dp !Inclination w.r.t equatorial plane in degrees 0.60_dp
+real(kind=dp), parameter :: lambda = 1.0_dp !Turn on/off spin curvature coupling
+real(kind=dp), parameter :: Norbit = 20.0_dp !Number of orbits
 
 
 !Plasma paramters
@@ -40,7 +40,10 @@ integer(kind=dp)  :: adaptive = 1 !turn on/off (1/0) adaptive stepsize.
 !Note if off, it is important to pay attention to stepsize. Not a paramter since changed between MPD and RT
 real(kind=dp), parameter :: hs = 1.0d-5 !Fixed timing resolution in seconds. only used if adaptive =0
 
-real(kind=dp), parameter :: RepRes = 1000.0_dp !The representative resolution. What fraction of the orbit do you want for target &
+
+real(kind=dp), parameter :: Nrays = 10
+
+!real(kind=dp), parameter :: RepRes = 1000.0_dp !The representative resolution. What fraction of the orbit do you want for target &
 !points? 1 = all of the orbit.
 
 integer(kind=dp), parameter :: RayTracingDirection = -1 !+1 = Forward, -1 = Backward

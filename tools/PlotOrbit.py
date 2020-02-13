@@ -27,8 +27,16 @@ elif  (d == 2):
 
 #Load data
 
-path = os.environ['IliadDir']
-data = np.loadtxt(path + 'MPDFormatData.txt')
+#path = os.environ['IliadDir']
+#data = np.loadtxt(path + 'MPDFormatData.txt')
+
+
+#Load example data
+data = np.loadtxt('../example_data/ExampleFormattedData.txt')
+
+
+
+
 
 r = data[:,0]
 theta = data[:,1]

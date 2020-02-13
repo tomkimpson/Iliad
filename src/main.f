@@ -11,9 +11,12 @@ call setup()
 
 
 
+
+
 !Generate the orbit
-print *, 'Calling MPD'
-call MPD()
+!print *, 'Calculating the PSR orbital dynamics'
+!call MPD()
+
 
 
 !Use the orbit as initial conditions for ray tracing. 
@@ -48,20 +51,24 @@ character(len = 80) :: BHMass, BHSpin, PSRMass, PSRSpin, PSRangle1, PSRangle2, P
 
 
 
-
+!Define the path to the output save directory. Path is globally accessible by all constants.
 call get_environment_variable("IliadDir", path)
 
-!Just for now, reassign path to point locally
+!---Just for now, reassign path to point locally
 path = '../example_data/'
 
+!---
 
 
 
+
+
+!Define the orbital dynamics output files
 MPDBinaryData = trim(adjustl(path))//'ExampleBinaryData.dat'
 MPDFormatData = trim(adjustl(path))//'ExampleFormattedData.txt'
 RTPath = trim(adjustl(path))//'RT/'
 
-!Welcome messages
+!Welcome messages for the user
 
 print *, 'Iliad is running'
 

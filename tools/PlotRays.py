@@ -30,6 +30,9 @@ elif  (d == 2):
 #Load data
 
 path = os.environ['IliadDir']
+
+path = '../example_data/'
+
 all_data = glob.glob(path+'RT/*.txt')
 #all_data = ['../src/temp_test.txt']
 

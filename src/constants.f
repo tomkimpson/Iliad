@@ -41,7 +41,7 @@ character(len=200) :: path, MPDBinaryData, MPDFormatData, RTPath
 
 
 !Ray tracing
-
+real(kind=dp) :: RepRes !representative resolution. Used in ray tracing with Nrays
 
 
 !Numerical integration

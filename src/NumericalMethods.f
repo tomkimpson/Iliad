@@ -227,9 +227,19 @@ errmax = escal * maxval(ratio)
 
 
 
+
+if (adaptive .EQ. 1) then
+
+
+
 if (errmax .GT. 1) then
 !The error is too big. Reduce the step size and exit without updating the variable vector
+
+
+
 call adaptive_shrink(errmax,h)
+
+c(4) = h !Update stepsize. Only if using adaptive stepsize
 
 goto 11
 
@@ -240,16 +250,13 @@ tau = tau + h !Update the proper time for MPD
 call adaptive_grow(errmax,h)
 y = ynew
 
-endif
-
-if (adaptive .EQ. 1) then
 c(4) = h !Update stepsize. Only if using adaptive stepsize
 endif
 
 
 
 
-
+endif
 
 
 

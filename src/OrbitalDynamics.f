@@ -17,6 +17,7 @@ contains
 
 
 
+!!!!!!!!!-----PUBLIC---!!!!!!!!!
 
 
 subroutine MPD()
@@ -35,12 +36,18 @@ logical :: res
 integer(kind=dp) :: array_rows, stat, stat_io,j
 
 
+
+!Allocate the array into which the numerical data will be saved
+!The array is of a finite dimension and will be written to disk every nrows
 allocate(MPDData(nrows,entries+1),stat=ierr)
 
+
+!Define initial position in BL coordinates t,r,theta,phi
 xi(1) = 0.0_dp !t_init
-xi(2) = semi_major
+xi(2) = semi_major 
 xi(3) = PI/2.0_dp
 xi(4) = 0.0_dp
+
 
 !Calculate the initial E,L,Q from the Keplerian orbital parameters
 call calculate_EQL(E,Q,L)
@@ -62,40 +69,54 @@ m_sq = -m_sq
 call mag_4(xi(2),xi(3), svector,s_sq)
 
 
-
-
-!Initialisation completed. Now run Runge Kutta
-!Pass it all to an array and pass that array to the numerical integrator
-
+!Vectorise
 y(1:4) = xi
 y(5:8) = pvector
 y(9:12) = svector
 
 
+
+
+!Initialisation is completed
+!Now we can run a numerical Runge Kutta integrator to determine the orbital evolution
+
+
+!Define the proper 0-time
 tau = xi(1)
+
+
+!Pass the constants as a vector 
 consts(1:3) = ci
 consts(4) = hs_natural!Initial integration stepsize
 
 
+!Save the initial conditions in the output array
 i = 1
 MPDData(i,1:12) = y
 MPDData(i,13) = tau
 
 
-counter = 0
-Narray = 0
+
+!Initialise some useful integer variables
+counter = 0 !Counts the total number of integration steps
+Narray = 0 !Counts the number of array writes to disk
 
 
+
+
+!Ok enought setup, let's calculate some stuff.
 do while (y(4) - xi(4) .LT. Norbit*2.0_dp*PI)
 
-!do while (i .LT. 2)
+!Uncomment for testing to examine numerical progress
+!print *, y(4) - xi(4), Norbit*2.0_dp*PI 
+
 
 counter = counter + 1
 
-!print *, i, y(4) - xi(4)
 
 call rk(y,consts)
 i = i+1
+
 
 !Save the output
 if (i .GT. nrows) then
@@ -108,13 +129,20 @@ if (i .GT. nrows) then
     i = 1
 endif
 
+
 MPDData(i,1:12) = y
 MPDData(i,13) = tau
 
 enddo
 
 
-!Save the data in binary format
+
+print *, 'Numerical Integration completed'
+print *, 'Finishing off IO'
+
+
+
+!Save the reaming data in binary format
 call FileOpen(MPDBinaryData)
 write(10) MPDData
 close(10)
@@ -126,16 +154,43 @@ call ToTextFile(MPDBinaryData)
 endif
 
 
-deallocate(MPDData)
+deallocate(MPDData) !Don't need this array any longer, so no need to keep it in memory
+
+!Calculate the representative resolution given the length of the dataset
+RepRes = real(counter, kind=dp) / Nrays
+
+print *, 'Narray = ', Narray
+print *, 'Repres = ', RepRes
+
+
+print *, 'Orbital Dynamics Completed'
+
+print *, Narray, nrows, i
+print *, Narray*nrows + i, counter
+
+print *, 'File size estimate = ', 13.0_dp*real(counter, kind=dp)*16.0_dp / 1e6, ' MB'
+
+
 end subroutine MPD
 
 
-!!!!!!!!!-----PRIVATE---!!!!!!!!!1
+
+
+
+
+
+
+
+
+!!!!!!!!!-----PRIVATE---!!!!!!!!!
 
 
 
 
 subroutine calculate_s(xi,ci,pvector,svector)
+
+!Calculate the 0-th component of the spin vector
+
 
 !Arguments
 real(kind=dp), dimension(4),intent(in) :: xi
@@ -178,6 +233,10 @@ end subroutine calculate_s
 
 
 subroutine calculate_p(xi,ci,pvector)
+
+!Calculates the momentum components
+
+
 !Arguments
 real(kind=dp), dimension(4),intent(in) :: xi
 real(kind=dp), dimension(3),intent(in) :: ci
@@ -228,6 +287,11 @@ end subroutine calculate_p
 
 
 subroutine calculate_EQL(E, Q, L)
+
+
+!Calculates the energy, angular momentum and Carter Constant
+
+
 real(kind=dp) :: f1,g1,h1,d1 !f_functions used in defining the determinants
 real(kind=dp) :: f2,g2,h2,d2 !f_functions used in defining the determinants
 real(kind=dp) :: kappa, epsil, rho, eta, sigma !determinants
@@ -288,10 +352,11 @@ L2 = g1**2.0_dp * E**2.0_dp + (f1*E**2.0_dp - d1)*h1
 L = L1 + DD*sqrt(L2)/h1
 
 
-
 !And finally the Carter constant
 
 Q = zMinus * (a**2.0_dp * (1.0_dp - E**2.0_dp) + L**2.0_dp/(1.0_dp-zMinus))
+
+
 
 end subroutine calculate_EQL
 

@@ -17,7 +17,7 @@ private initial_conditions, RT_Forward, RT_Backward, GeneralInitialConditions, s
 contains
 
 subroutine RT()
-integer(kind=dp) :: stat,i
+integer(kind=dp) :: stat,i, IOstatus
 
 real(kind=dp), dimension(:,:), allocatable :: MPDData
 real(kind=dp) :: t,r,theta,phi,tau
@@ -42,183 +42,245 @@ allocate(PlotData(int(1e5),6))
 
 
 !Load the MPD Data file
-open(unit=10, file=MPDBinaryData , form='unformatted',access='stream')
+open(unit=101, file=MPDBinaryData , form='unformatted',access='stream')
 
 !The file is composed of multiple arrays of size nrows x entries+1.
 !We load each array in turn.
+!This avoids loading massive arrays into the memory all at once
 
-stat = 0
-do while (stat .EQ. 0)
-
-    !For each array
-    read(10,iostat=stat) MPDData
-    if (stat .NE. 0) then
-    exit
-    endif
-
-    print *, 'Loaded MPD DATA', stat
-
-    do i = 1,nrows
+IOstatus = 0
 
 
+do while (IOstatus .EQ. 0)
 
-    print *, 'This is ray number:', i
 
-
-    if (MPDData(i,2) .EQ. 0.0_dp) then
-    !End of data array
-    exit
-    endif
+!Read in the sub array
+read(101, iostat = IOstatus) MPDData
+print *, 'stat = ', IOstatus
+print *, MPDData(1,1:4)
 
 
 
 
 
-
-    ! We dont want to find intersections with all the integration points, just a subset.
-    if ( mod(real(i,kind=dp), RepRes) .EQ. 0.0_dp .or. i .EQ. 1) then
-
-        !Get the data in terms of vectors
-        !Get position coords
-        xvector(1) = MPDData(i,13) !tau
-        xvector(2:4) = MPDData(i,2:4)
-
-
-
-        if (RayTracingDirection .EQ. +1.0_dp) then
-        !Forward
-        call RT_Forward()
-        else if (RayTracingDirection .EQ. -1.0_dp) then
-        !Backward
-        call RT_Backward(xvector)
-        else
-        !Exit
-        print *, 'Error: You need to set the ray tracing method'
-        stop
-
-
-    endif
-
-
-
-    endif
-
-
+    do i = 1,1 !Just do first entry for example
+    xvector(1) = MPDData(i,13) !tau
+    xvector(2:4) = MPDData(i,2:4)
+    
+    call RT_Backward(xvector)
 
     enddo
 
 
 
-    print *, 'Are we stopping here?'
-    stop
+
+
+
+enddo
+
+stop
+
+!read(10, iostat = stat) MPDData
+!print *, 'stat = ', stat
+!print *, MPDData(1,1:4)
+
+
+!read(10, iostat = stat) MPDData
+!print *, 'stat = ', stat
+!print *, MPDData(1,1:4)
+
+
+!read(10, iostat = stat) MPDData
+!print *, 'stat = ', stat
+!print *, MPDData(1,1:4)
+
+!stop
+
+
+
+do while (stat .EQ. 0)
+
+    !For each sub-array
+    read(10,iostat=stat) MPDData
+ 
+    print *, 'READING'
+    print *, stat
+
+    if (stat .NE. 0) then
+    print *, 'STAT NE 0'
+    exit
+    endif
+
+    print *, 'Loaded MPD sub array', stat
+
+
+
+    if (RayTracingDirection .EQ. +1.0_dp) then
+    !Do forward ray tracing where the orbital dynamics are used as initial conditions
+    
+    else
+    !Do backwards ray tracing, where the orbital dynamcis provide endpoints. Ray IC are found via non-linear conjugate gradient
+    !descent
+
+
+    do i = 1,1 !Just do first entry for example
+    xvector(1) = MPDData(i,13) !tau
+    xvector(2:4) = MPDData(i,2:4)
+    
+    call RT_Backward(xvector)
+
+    enddo
+
+
+    print *, 'ENDDO'
+    print *, stat
+
+   endif
+
+
+
+    !if (MPDData(i,2) .EQ. 0.0_dp) then
+    !End of data array
+    !exit
+    !endif
+
+
+
+
+
+
+
+
+   !     if (RayTracingDirection .EQ. +1.0_dp) then
+        !Forward
+  !      call RT_Forward()
+  !      else if (RayTracingDirection .EQ. -1.0_dp) then
+        !Backward
+  !      else
+        !Exit
+ !       print *, 'Error: You need to set the ray tracing method'
+ !       stop
+
+
+  !  endif
+
+
+
+  !  endif
+
+
+
+  !  enddo
+
+
+
+  !  print *, 'Are we stopping here?'
+  !  stop
 
 
 
     !For each row in array   Bring OpenMp in here
-    do i = 1,nrows
+!    do i = 1,nrows
+!
+!
+!    print *, 'row:', i
+!
+!
+!
+!    
+!
+!    !Get 4 velocity
+!    uvector(1) = MPDData(i,5)/m0
+!    uvector(2) = MPDData(i,6)/m0
+!    uvector(3) = MPDData(i,7)/m0
+!    uvector(4) = MPDData(i,8)/m0
+!
+!    print *, 'Uvector=', uvector
+!
+!
+!    !Get spin
+!    svector = MPDData(i,9:12)
+!    
+! 
+!    
+!    !Check that the 4-velocity satisfies mag = -1
+! 
+!    r = MPDData(i,2)
+!    theta = MPDData(i,3)
+!    call mag_4(r,theta,uvector,mag)
+!    print *, 'Magnitude of 4-velocity = ', mag
+!    
+!    
+!    !Set the energy at +infinity
+!    Eobs = 2.0_dp*PI*1.0d9
+!
+!    !SEt initial conditions
+!    !Vector v = (r,that,phi,t,pr,ptheta) c = constants + stepsize
+!    
+!    call initial_conditions(xvector,uvector,svector,Eobs, &
+!                            v,c)
+!    
+!    rstart = v(1)
+!    counter = 1
+! !   do while (v(1) .GT. Rhor .and. v(1) .LT. rstart*10.0_dp)
+!  
+! do while (counter .lt. 10)
+!! call rk_geodesic(v,c)
+!    
+!    print *, counter, v(1),v(2), c(4)
+!
+!
+!    if (plot_RT .EQ. 1) then
+!    PlotData(counter,:) = v
+!    endif
+!
+!
+!    counter = counter + 1
+!
+!
+!    enddo
+!
+!
+!stop
+!
+!    !Save to file
+!
+!    
+!!FileID = i*100
+!!write (IDStr, "(I5)") FileID
+!!FileName = trim(adjustl(RTPath))//'RT_'//trim(adjustl(IDStr))//'.txt'
+!
+!open(unit = FileID, file = FileName, status = 'replace', form='formatted')
+!
+!
+!
+!do jj=1,counter-1
+!    xC = sqrt(PlotData(jj,1)**2 + a**2) * sin(PlotData(jj,2))*cos(PlotData(jj,3))
+!    yC = sqrt(PlotData(jj,1)**2 + a**2) * sin(PlotData(jj,2))*sin(PlotData(jj,3))
+!    zC = PlotData(jj,1) * cos(PlotData(jj,2))
+!    
+! !   print *, xC, yC, zC
+!
+!    write(FileID,*) xC,yC,zC
+!
+!enddo
+!
+!
+!close(FileID)
+!
+!
+!
+!
+!
+!    enddo
+!
+!
 
 
-    print *, 'row:', i
 
 
-
-    
-
-    !Get 4 velocity
-    uvector(1) = MPDData(i,5)/m0
-    uvector(2) = MPDData(i,6)/m0
-    uvector(3) = MPDData(i,7)/m0
-    uvector(4) = MPDData(i,8)/m0
-
-    print *, 'Uvector=', uvector
-
-
-    !Get spin
-    svector = MPDData(i,9:12)
-    
- 
-    
-    !Check that the 4-velocity satisfies mag = -1
- 
-    r = MPDData(i,2)
-    theta = MPDData(i,3)
-    call mag_4(r,theta,uvector,mag)
-    print *, 'Magnitude of 4-velocity = ', mag
-    
-    
-    !Set the energy at +infinity
-    Eobs = 2.0_dp*PI*1.0d9
-
-    !SEt initial conditions
-    !Vector v = (r,that,phi,t,pr,ptheta) c = constants + stepsize
-    
-    call initial_conditions(xvector,uvector,svector,Eobs, &
-                            v,c)
-    
-    rstart = v(1)
-    counter = 1
- !   do while (v(1) .GT. Rhor .and. v(1) .LT. rstart*10.0_dp)
-  
- do while (counter .lt. 10)
-! call rk_geodesic(v,c)
-    
-    print *, counter, v(1),v(2), c(4)
-
-
-    if (plot_RT .EQ. 1) then
-    PlotData(counter,:) = v
-    endif
-
-
-    counter = counter + 1
-
-
-    enddo
-
-
-stop
-
-    !Save to file
-
-    
-FileID = i*100
-write (IDStr, "(I5)") FileID
-FileName = trim(adjustl(RTPath))//'RT_'//trim(adjustl(IDStr))//'.txt'
-
-open(unit = FileID, file = FileName, status = 'replace', form='formatted')
-
-
-
-do jj=1,counter-1
-    xC = sqrt(PlotData(jj,1)**2 + a**2) * sin(PlotData(jj,2))*cos(PlotData(jj,3))
-    yC = sqrt(PlotData(jj,1)**2 + a**2) * sin(PlotData(jj,2))*sin(PlotData(jj,3))
-    zC = PlotData(jj,1) * cos(PlotData(jj,2))
-    
- !   print *, xC, yC, zC
-
-    write(FileID,*) xC,yC,zC
 
 enddo
-
-
-close(FileID)
-
-
-
-
-
-    enddo
-
-enddo
-
-
-
-
-
-
-
-
-
 close(10)
 
 end subroutine RT
@@ -227,6 +289,16 @@ end subroutine RT
 
 
 
+
+
+
+
+
+
+
+
+
+!----Private subroutines
 
 subroutine initial_conditions(xi,ui,si,Eobs, &
                               v,c)
@@ -529,7 +601,7 @@ print *, 'Initial ds =', IO(6)
 OT(1) = 0.010_dp ! Initial stepsize alpha for backtracing
 globals = 0.0_dp
 
-do while (IO(6) .GT. 1.0d-6)
+do while (IO(6) .GT. 1.0d-1)
 
 call aim(IO,globals,OT)
 
