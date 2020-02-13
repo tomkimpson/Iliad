@@ -40,7 +40,7 @@ The code should then run as is, out of the box. Try
 ```
 run.py
 ```
-to compile and run the code. Once you have checked that everything is running OK, you can then start playing. The code structure (modules, subroutines etc.) is outlined below.
+to compile and run the code. Once you have checked that everything is running OK, you can then start playing.The `Worked_Example` Jupyter notebook is a good place to start, for a python interface with the underlying code. The code structure (modules, subroutines etc.) is outlined below.
 
 
 If making edits to the code, try to keep to the [FORTRAN Style Guide](https://www.fortran90.org/src/best-practices.html)
@@ -50,11 +50,21 @@ If making edits to the code, try to keep to the [FORTRAN Style Guide](https://ww
 
 * `parameters.f`. This is effectively the config file for specifying the system parameters
 
+* `constants.f`. This is a globally accessible module that performs some calculations at compile time based on the specifications in `parameters.f`. Nothing should need to be altered in this file.
+
 * `main.f`. This is the root program which runs all the necessary subroutines. It first determines the PSR spin orbital dynamics (`OrbitalDynamics.f`) and then uses the output as initial conditions for the ray tracing (`RayTracing.f`) 
 
-* `OrbitalDynamics.f`. Computes the PSR spin dynamics, assuming a Kerr background spacetime. Standard position initial conditions are *(t0, r0, theta0, phi0) = 0,sma,PI/2,PI )*, though naturally these can be changed. The initial orientation of the spin axis is set in `parameters.f`. The integration can be set to have constant stepsize, or adaptive in `parameters.f`. The output is a single file of size NSTEPS x 13 i.e. number of integration steps and 3 x 4 vectors (positions, spin ,momentum) plus the proper time (related to the stepsize). If `plot_MPD` is set to 1 in `parameters.f`, then the output file will also be written as a readable  text file (useful for e.g. plotting).
+* `OrbitalDynamics.f`. Computes the PSR spin dynamics, assuming a Kerr background spacetime. The initial position, momenta and spin can all be set in `parameters.f`. Similarly, the numerical integration method can be set to have a constant or adaptive stepsize.The output is a single binary file of size NSTEPS x 13 i.e. number of integration steps and 3 x 4 vectors (positions, spin ,momentum) plus the proper time (related to the stepsize). If `plot_MPD` is set to 1 in `parameters.f`, then the output file will also be written as a readable  text file (useful for e.g. plotting).
 
-* `RayTracing.f`. Photon trajectory emitted from the PSR described by `OrbitalDynamics`. 
+* `RayTracing.f`. Computes the path of the pulsar light ray on the background spacetime. Either a 'forward' or 'backward' in time integration can be used, depending on your goals (e.g. TOAs vs examination of precession, pulse profile etc.). It takes the output of `OrbitalDynamics` as boundary conditions and finds the correct ray using a non-linear conjugate gradient descent approach.
+
+* `NumericalMethods.f`. Governs the numerical integration. We use a 5th order Runge-Kutta with adaptive stepsize.
+
+* `derivatives`. Defines the derivative ODEs to be solved numerically.
+
+* `metric.f`. Completley defines the background spacetime and associated Christoffel, Riemann etc. components.
+
+* `IO.f`. Module for IO. Typically unformatted binary. Exploring use of HDF.
 ##
 
 

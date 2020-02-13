@@ -6,18 +6,14 @@ use RayTracing
 implicit none
 
 
-
 !Set up some paths, save directories, etc
-
 call setup()
 
 
 
 !Generate the orbit
-!print *, 'Calling MPD'
-!call MPD()
-
-
+print *, 'Calling MPD'
+call MPD()
 
 
 !Use the orbit as initial conditions for ray tracing. 
@@ -49,9 +45,20 @@ character(len = 20), parameter :: FMT1 = "(F10.2)"
 character(len = 20), parameter :: FMT3 = "(F10.3)"
 character(len = 80) :: BHMass, BHSpin, PSRMass, PSRSpin, PSRangle1, PSRangle2, PSRangle3, OrbitalPeriod, OrbitalEcc, &
                        OrbitalNumber, OrbitalIota
+
+
+
+
 call get_environment_variable("IliadDir", path)
-MPDBinaryData = trim(adjustl(path))//'MPDBinaryData.dat'
-MPDFormatData = trim(adjustl(path))//'MPDFormatData.txt'
+
+!Just for now, reassign path to point locally
+path = '../example_data/'
+
+
+
+
+MPDBinaryData = trim(adjustl(path))//'ExampleBinaryData.dat'
+MPDFormatData = trim(adjustl(path))//'ExampleFormattedData.txt'
 RTPath = trim(adjustl(path))//'RT/'
 
 !Welcome messages

@@ -73,6 +73,47 @@ for f in all_data:
 
 
 
+#also plot the orbit
+
+
+data = np.loadtxt(path + 'ExampleFormattedData.txt')
+
+r = data[:,0]
+theta = data[:,1]
+phi = data[:,2]
+a = data[0,3]
+
+
+mm = np.sqrt(r**2 + a**2)
+x = mm * np.sin(theta)*np.cos(phi)
+y = mm * np.sin(theta)*np.sin(phi)
+z = r  * np.cos(theta)
+
+
+
+
+
+
+#Plot it
+
+
+if (d == 3):
+    ax1.plot(x,y,z)  
+    limit = max(max(x),max(y),max(z))
+    ax1.set_xlim(-limit,+limit)
+    ax1.set_ylim(-limit,+limit)
+    ax1.set_zlim(-limit,+limit)
+
+if (d == 2):
+    ax1.plot(x,y)
+
+
+
+
+
+
+
+
 
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')

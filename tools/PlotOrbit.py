@@ -11,7 +11,7 @@ import os
 
 
 
-d = 2
+d = 3
 
 
 #Set up plotting environment

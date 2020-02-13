@@ -40,7 +40,7 @@ allocate(MPDData(nrows,entries+1),stat=ierr)
 xi(1) = 0.0_dp !t_init
 xi(2) = semi_major
 xi(3) = PI/2.0_dp
-xi(4) = PI !0.0_dp
+xi(4) = 0.0_dp
 
 !Calculate the initial E,L,Q from the Keplerian orbital parameters
 call calculate_EQL(E,Q,L)

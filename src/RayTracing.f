@@ -35,7 +35,7 @@ character(len=200) :: FileName,IDStr
 integer(kind=dp) :: FileID
 
 
-
+!Allocate the arrays in the memory
 allocate(MPDData(nrows,entries+1))
 allocate(PlotData(int(1e5),6))
 
@@ -58,9 +58,11 @@ do while (stat .EQ. 0)
 
     print *, 'Loaded MPD DATA', stat
 
-
-
     do i = 1,nrows
+
+
+
+    print *, 'This is ray number:', i
 
 
     if (MPDData(i,2) .EQ. 0.0_dp) then
@@ -69,45 +71,33 @@ do while (stat .EQ. 0)
     endif
 
 
-    if ( mod(real(i,kind=dp), RepRes) .EQ. 0.0_dp) then
- 
-
-    !Get the data in terms of vectors
-    !Get position coords
-    xvector(1) = MPDData(i,13) !tau
-    xvector(2:4) = MPDData(i,2:4)
 
 
 
 
+    ! We dont want to find intersections with all the integration points, just a subset.
+    if ( mod(real(i,kind=dp), RepRes) .EQ. 0.0_dp .or. i .EQ. 1) then
+
+        !Get the data in terms of vectors
+        !Get position coords
+        xvector(1) = MPDData(i,13) !tau
+        xvector(2:4) = MPDData(i,2:4)
 
 
 
-
-
-    if (RayTracingDirection .EQ. +1.0_dp) then
-    !Forward
-    call RT_Forward()
-    else if (RayTracingDirection .EQ. -1.0_dp) then
-    !Backward
-    call RT_Backward(xvector)
-    else
-    !Exit
-    print *, 'Error: You need to set the ray tracing method'
-    stop
+        if (RayTracingDirection .EQ. +1.0_dp) then
+        !Forward
+        call RT_Forward()
+        else if (RayTracingDirection .EQ. -1.0_dp) then
+        !Backward
+        call RT_Backward(xvector)
+        else
+        !Exit
+        print *, 'Error: You need to set the ray tracing method'
+        stop
 
 
     endif
-
-            print *, RayTracingDirection
-    stop
-
-
-
-
-
-
-
 
 
 
@@ -118,23 +108,9 @@ do while (stat .EQ. 0)
     enddo
 
 
+
+    print *, 'Are we stopping here?'
     stop
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -286,114 +262,6 @@ delta = r**2 -2.0_dp*r + a**2
 
 
 
-
-
-!-----------------------------------------------
-!-----------------------------------------------
-!-----------------------------------------------
-!-----------------------------------------------
-!-----------------------------------------------
-
-!!Set dipole axis
-!tau = xi(1)
-!psi = 2.0_dp*PI*tau/SpinPeriod
-!
-!!Define direction tangent vector
-!ki(1) = 1.0_dp
-!ki(2) = sin(chi)*cos(psi)
-!ki(3) = sin(chi)*sin(psi)
-!ki(4) = cos(chi)
-!
-!
-!
-!
-!!Rotate it to account for precession of spin axis
-!s1 = si(2)
-!s2 = si(3)
-!s3 = si(4)
-!
-!
-!
-!!no need for BL here - defined locally. 
-!sx = s1*sin(theta)*cos(phi) + s2*r*cos(theta)*cos(phi) - s3*r*sin(theta)*sin(phi)
-!sy = s1*sin(theta)*sin(phi) + s2*r*cos(theta)*sin(phi) + s3*r*sin(theta)*cos(phi)
-!sz = s1*cos(theta) - s2*r*sin(theta)
-!
-!st = atan2(sqrt(sx**2 + sy**2),sz)
-!sp = atan2(sy,sx)
-!
-!
-!
-!Rz = 0.0_dp
-!Ry= 0.0_dp
-!Rz(1,1) = cos(sp)
-!Rz(1,2) = -sin(sp)
-!Rz(2,1) = sin(sp)
-!Rz(2,2) = cos(sp)
-!Rz(3,3) = 1.0_dp
-!
-!Ry(1,1) = cos(st)
-!Ry(1,3) = sin(st)
-!Ry(3,1) = -sin(st)
-!Ry(3,3) = cos(st)
-!Ry(2,2) = 1.0_dp
-!
-!
-!
-!
-!
-!ki_space = ki(2:4)
-!ki_rot  = MATMUL(Rz,MATMUL(Ry,ki_space))
-!
-!ki(2:4) = ki_space
-!
-!
-!
-!mm = sqrt(r**2 + a**2)
-!
-!
-!
-!!ki is still xdot ,ydoy,zdot 
-!!need a transform to rdot,zdot,thetadot in tetrad frame?
-!
-!
-!!This is the cartesian tetrad frame
-!xdot = ki(2)
-!ydot = ki(3)
-!zdot = ki(4)
-!
-!!This is the polar tetrad frame
-!
-!
-!
-!
-!
-!ki(2) = sin(theta)*cos(phi) * xdot + &
-!        sin(theta)*cos(phi) * ydot + &
-!        cos(theta) * zdot
-!
-!
-!ki(3) = cos(theta)*cos(phi) * xdot + &
-!        cos(theta)*sin(phi) * ydot - &
-!        sin(theta)
-!
-!
-!ki(4) = -sin(phi)*xdot + cos(phi)*ydot
-!
-!
-!
-!print *, 'ki=', ki
-!print *,'xdot', xdot, ydot, zdot
-!
-
-
-
-
-!-----------------------------------------------
-!-----------------------------------------------
-!-----------------------------------------------
-!-----------------------------------------------
-!-----------------------------------------------
 
 
 
@@ -625,10 +493,12 @@ xT = mm * sin(xi(3))*cos(xi(4))
 yT = mm * sin(xi(3))*sin(xi(4))
 zT = mm * cos(xi(3))
 
+print *, 'TARGET POINTS  =', xT, yT, zT
 
-xT = -13.0_dp
-yT = 5.0_dp
-zT = 0.0_dp
+
+!xT = -13.0_dp
+!yT = 5.0_dp
+!zT = 0.0_dp
 
 
 
@@ -672,9 +542,6 @@ enddo
 print *, 'The mininum has been sucessfully found. Now tracing the ray'
 plot=1
 call shoot(IO,plot)
-
-stop
-
 
 
 end subroutine RT_Backward
@@ -855,88 +722,6 @@ stop
 
 
 
-
-!01 do
-!
-!        etaRT =etaRT * factor
-!        IO(4) = aBEST + etaRT*hA
-!        IO(5) = bBEST + etaRT*hB
-!
-!
-!        call shoot(IO)
-!
-!
-!
-!
-!        if (IO(6) .LT. dsBEST) then
-!        aBEST = IO(4)
-!        bBEST = IO(5)
-!        dsBEST = IO(6)
-!
-!        else
-!                EXIT !Exit do loop
-!        endif
-!
-!
-!
-!
-!
-!
-!enddo
-!
-!
-!
-!
-!
-!if (dsBEST .LT. dsORIG) then
-!!Good. Update
-!
-!
-!!Update search attempts        
-!IO(4) = aBEST
-!IO(5) = bBEST
-!IO(6) = dsBEST
-!
-!
-!!Update globals
-!globals(1) = gA
-!globals(2) = gB
-!globals(3) = hA
-!globals(4) = hB
-!
-!
-!!Update stepsize
-!OT(1) = etaRT/5.0_dp
-!
-!
-!
-!else
-!
-!!Dont update
-!IO(4) = alpha0
-!IO(5) = beta0
-!IO(6) = dsORIG
-!
-!!Set search parameters
-!OT(1) = OT(2) !etaRT = etaLOW
-!OT(3) = OT(3) + 1 !Track the number of fails
-!
-!endif
-!
-!
-!
-!if (OT(3) .GT. 20) then
-!!Repeatedly fails to lower
-!!Change search parameters and reset globals
-!OT(1) = 5.0e-9_dp
-!OT(2) = OT(1)
-!OT(3) = 0.0_dp
-!globals = 0.0_dp
-!endif
-!
-!
-
-!print *, 'OUT:', IO(6), OT(1), OT(3)
 
 
 end subroutine aim
