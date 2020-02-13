@@ -14,7 +14,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-The main part of the code (w.r.t orbital dynamics, ray tracing) is written in FORTRAN with a [gfortran](https://gcc.gnu.org/wiki/GFortran) compiler. **Other compilers have not been tested.** The gfortran installation binaries can be found [here](https://gcc.gnu.org/wiki/GFortranBinariels), although typically gfortran comes pre-installed on most Linux/Unix systems. If you have [Homebew](https://brew.sh/) installed on OSX, you can simply run 
+The main part of the code (w.r.t orbital dynamics, ray tracing) is written in FORTRAN with a [gfortran](https://gcc.gnu.org/wiki/GFortran) compiler. **Other compilers have not been tested.** The gfortran installation binaries can be found [here](https://gcc.gnu.org/wiki/GFortranBinariels), although typically gfortran comes pre-installed on most Linux/Unix systems. If you have [Homebrew](https://brew.sh/) installed on OSX, you can simply run 
 
 
 ```
@@ -65,6 +65,14 @@ If making edits to the code, try to keep to the [FORTRAN Style Guide](https://ww
 * `metric.f`. Completley defines the background spacetime and associated Christoffel, Riemann etc. components.
 
 * `IO.f`. Module for IO. Typically unformatted binary. Exploring use of HDF.
+
+
+
+![](example_data/flowchart.pdf?raw=true)
+
+
+
+
 ##
 
 
