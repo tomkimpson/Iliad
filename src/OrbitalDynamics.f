@@ -159,15 +159,9 @@ deallocate(MPDData) !Don't need this array any longer, so no need to keep it in 
 !Calculate the representative resolution given the length of the dataset
 RepRes = real(counter, kind=dp) / Nrays
 
-print *, 'Narray = ', Narray
-print *, 'Repres = ', RepRes
 
 
 print *, 'Orbital Dynamics Completed'
-
-print *, Narray, nrows, i
-print *, Narray*nrows + i, counter
-
 print *, 'File size estimate = ', 13.0_dp*real(counter, kind=dp)*16.0_dp / 1e6, ' MB'
 
 
