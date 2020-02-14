@@ -72,8 +72,8 @@ def PlotTheRay(path_to_data,dimensions,ax):
     if (dimensions == 3):
 
         ax.plot(x,y,z) 
-        ax.scatter(x[-1],y[-1],z[-1])  
-        ax.scatter(0,0,0, c='r') 
+        ax.scatter(x[-1],y[-1],z[-1],c='C0')  
+ 
         
         #And make it pretty
         ax.tick_params(labelbottom=False,labeltop=False, labelleft=False)    
@@ -82,8 +82,8 @@ def PlotTheRay(path_to_data,dimensions,ax):
     elif  (dimensions == 2):
 
         ax.plot(x,y)
-        ax.scatter(x[-1],y[-1]) 
-        ax.scatter(0,0, c='r') 
+        ax.scatter(x[-1],y[-1], c='C0') 
+
         
         limit = 60
         ax.set_xlim(-limit, +limit)

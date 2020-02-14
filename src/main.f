@@ -14,8 +14,8 @@ call setup()
 
 
 !Generate the orbit
-!print *, 'Calculating the PSR orbital dynamics'
-!call MPD()
+print *, 'Calculating the PSR orbital dynamics'
+call MPD()
 
 
 
@@ -26,7 +26,7 @@ call RT()
 
 
 
-
+!And tell the user the program has completed and the location of the outputs
 print *, 'Completed'
 print *, 'Output files are:'
 print *, MPDFormatData
